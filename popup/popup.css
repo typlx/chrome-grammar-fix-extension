@@ -6,7 +6,11 @@
 
 body {
   width: 340px;
-  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
   background: #0f0f17;
   color: #e2e2ef;
 }
@@ -25,7 +29,7 @@ body {
 .logo {
   width: 24px;
   height: 24px;
-  color: #6C63FF;
+  color: #6c63ff;
 }
 
 h1 {
@@ -62,7 +66,7 @@ input {
 }
 
 input:focus {
-  border-color: #6C63FF;
+  border-color: #6c63ff;
 }
 
 input::placeholder {
@@ -109,13 +113,15 @@ input::placeholder {
   padding: 10px;
   border: none;
   border-radius: 8px;
-  background: #6C63FF;
+  background: #6c63ff;
   color: #fff;
   font-size: 14px;
   font-weight: 600;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition:
+    background 0.15s,
+    transform 0.1s;
   margin-top: 4px;
 }
 
@@ -137,7 +143,9 @@ input::placeholder {
   font-size: 13px;
   font-weight: 500;
   opacity: 0;
-  transition: opacity 0.25s, transform 0.25s;
+  transition:
+    opacity 0.25s,
+    transform 0.25s;
   pointer-events: none;
   width: calc(100% - 24px);
   max-width: 320px;

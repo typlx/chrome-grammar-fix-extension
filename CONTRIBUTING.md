@@ -9,14 +9,54 @@ Thanks for contributing to Chrome Grammar Fix Extension.
 
 ```bash
 git clone https://github.com/<your-user>/chrome-grammar-fix-extension.git
-cd chrome_fixgrammarextension
+cd chrome-grammar-fix-extension
 ```
 
-3. Load extension in Chrome:
+3. Install dependencies:
+
+```bash
+npm install --include=dev
+```
+
+4. Load extension in Chrome:
    - Open `chrome://extensions`
    - Enable **Developer mode**
    - Click **Load unpacked**
    - Select project folder
+
+## Code Quality
+
+This project enforces code quality through ESLint, Prettier, and Vitest. CI runs all checks automatically on every pull request.
+
+### Linting
+
+```bash
+npm run lint          # check for issues
+npm run lint:fix      # auto-fix what ESLint can
+```
+
+### Formatting
+
+```bash
+npm run format:check  # check formatting
+npm run format        # auto-format all files
+```
+
+### Testing
+
+```bash
+npm test              # run all tests
+npm run test:watch    # run tests in watch mode
+npm run test:coverage # run tests with coverage report
+```
+
+### Full Validation
+
+Run lint, format check, and tests in one command:
+
+```bash
+npm run validate
+```
 
 ## Workflow
 
@@ -26,19 +66,26 @@ cd chrome_fixgrammarextension
 git checkout -b feat/short-description
 ```
 
-2. Implement and test manually:
+2. Implement your change.
+
+3. Run the full validation before committing:
+
+```bash
+npm run validate
+```
+
+4. Test manually in Chrome:
    - popup save validation
    - grammar fix on textarea/contenteditable/input
    - dynamic page behavior (elements added after load)
 
-3. Commit with clear message:
+5. Commit with a clear message:
 
 ```bash
-git add .
 git commit -m "feat: short description"
 ```
 
-4. Push and open a Pull Request.
+6. Push and open a Pull Request.
 
 ## Code Expectations
 
@@ -46,3 +93,5 @@ git commit -m "feat: short description"
 - Do not expose API tokens to content scripts or page scripts.
 - Keep error messages clear and actionable for users.
 - Preserve existing behavior unless change is explicit in PR description.
+- All code must pass ESLint and Prettier checks before merge.
+- Write tests for new functionality; test names should describe the scenario.

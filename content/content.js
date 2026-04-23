@@ -135,7 +135,7 @@
     if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
       const nativeSetter = Object.getOwnPropertyDescriptor(
         el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype,
-        'value'
+        'value',
       ).set;
       nativeSetter.call(el, text);
       el.dispatchEvent(new Event('input', { bubbles: true }));
