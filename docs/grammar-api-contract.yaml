@@ -1,0 +1,320 @@
+openapi: 3.1.0
+info:
+  title: Grammar Correction API Contract
+  version: 1.0.0
+  description: >
+    Platform-agnostic grammar correction interface shared across Chrome extension,
+    Android keyboard, and iOS keyboard. Each platform implements provider adapters
+    that conform to this contract. The contract defines the logical interface —
+    not a deployed HTTP service — so platforms may call LLM APIs directly using
+    their native HTTP clients while following this request/response shape.
+
+paths:
+  /grammar/fix:
+    post:
+      operationId: fixGrammar
+      summary: Correct grammar and spelling in the provided text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrammarRequest"
+      responses:
+        "200":
+          description: Corrected text with optional change details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GrammarResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limited
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /provider/validate:
+    post:
+      operationId: validateProvider
+      summary: Validate provider configuration (API URL, token, model)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProviderConfig"
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationResponse"
+
+components:
+  schemas:
+    GrammarRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: The text to correct
+          minLength: 1
+          maxLength: 10000
+        language:
+          type: string
+          description: ISO 639-1 language hint. Auto-detected if omitted.
+          example: en
+        context:
+          type: string
+          enum:
+            - general
+            - email
+            - chat
+            - essay
+            - code_comment
+          default: general
+          description: >
+            Usage context that tunes the system prompt. "general" applies
+            standard grammar/spelling correction. Other values add
+            context-aware adjustments (e.g. chat is more informal).
+        provider:
+          type: string
+          description: Provider ID override. Uses the user's default if omitted.
+          example: openai
+
+    GrammarResponse:
+      type: object
+      required:
+        - corrected
+        - provider
+        - model
+      properties:
+        corrected:
+          type: string
+          description: The corrected text
+        changes:
+          type: array
+          description: Individual corrections applied (optional — depends on provider capability)
+          items:
+            $ref: "#/components/schemas/GrammarChange"
+        provider:
+          type: string
+          description: Which provider handled the request
+          example: openai
+        model:
+          type: string
+          description: Which model was used
+          example: gpt-4o-mini
+        processingMode:
+          type: string
+          enum:
+            - cloud
+            - self_hosted
+            - local
+          default: cloud
+          description: Where the processing happened
+
+    GrammarChange:
+      type: object
+      required:
+        - original
+        - replacement
+        - offset
+        - length
+      properties:
+        original:
+          type: string
+          description: Original text fragment
+        replacement:
+          type: string
+          description: Corrected text fragment
+        offset:
+          type: integer
+          description: Character offset in the original text
+          minimum: 0
+        length:
+          type: integer
+          description: Length of the original fragment
+          minimum: 1
+        category:
+          type: string
+          enum:
+            - grammar
+            - spelling
+            - punctuation
+            - style
+          description: Type of correction
+
+    ProviderConfig:
+      type: object
+      required:
+        - provider
+        - apiUrl
+        - model
+        - token
+      properties:
+        provider:
+          type: string
+          enum:
+            - openai
+            - anthropic
+            - custom
+          description: Provider identifier
+        apiUrl:
+          type: string
+          format: uri
+          description: Base API URL
+          example: https://api.openai.com/v1
+        model:
+          type: string
+          description: Model identifier
+          example: gpt-4o-mini
+        token:
+          type: string
+          description: API authentication token (encrypted at rest on all platforms)
+
+    ValidationResponse:
+      type: object
+      required:
+        - ok
+      properties:
+        ok:
+          type: boolean
+        error:
+          type: string
+          description: Human-readable error message when ok is false
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              enum:
+                - no_text
+                - invalid_config
+                - provider_error
+                - rate_limited
+                - unauthorized
+                - network_error
+              description: Machine-readable error code
+            message:
+              type: string
+              description: Human-readable error message
+
+    SystemPrompts:
+      type: object
+      description: >
+        Standard system prompts used across all platforms. Each platform must use
+        these exact prompts (or the context-specific variant) to ensure consistent
+        correction behavior.
+      properties:
+        general:
+          type: string
+          default: >-
+            Fix grammar and spelling in the following text. Return only the
+            corrected text, nothing else. Preserve the original language, tone,
+            and formatting.
+        email:
+          type: string
+          default: >-
+            Fix grammar and spelling in the following email text. Return only
+            the corrected text, nothing else. Preserve the original language,
+            tone, formatting, and level of formality.
+        chat:
+          type: string
+          default: >-
+            Fix grammar and spelling in the following chat message. Return only
+            the corrected text, nothing else. Preserve the informal tone and
+            any intentional stylistic choices. Only fix clear errors.
+        essay:
+          type: string
+          default: >-
+            Fix grammar, spelling, and punctuation in the following text. Return
+            only the corrected text, nothing else. Preserve the original language,
+            tone, and formatting. Suggest improvements for clarity where grammar
+            is technically correct but awkward.
+        code_comment:
+          type: string
+          default: >-
+            Fix grammar and spelling in the following code comment or
+            documentation text. Return only the corrected text, nothing else.
+            Preserve technical terms, code references, and formatting.
+
+    ProviderAdapter:
+      type: object
+      description: >
+        Interface specification for provider adapters. Each platform (JS, Kotlin,
+        Swift) implements this interface for every supported provider.
+      properties:
+        id:
+          type: string
+          description: Unique provider identifier (e.g. "openai", "anthropic")
+        displayName:
+          type: string
+          description: Human-readable name for the settings UI
+        defaults:
+          type: object
+          description: Default apiUrl and model for this provider
+          properties:
+            apiUrl:
+              type: string
+            model:
+              type: string
+        configFields:
+          type: array
+          description: Fields to display in the settings UI for this provider
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              label:
+                type: string
+              type:
+                type: string
+                enum:
+                  - url
+                  - text
+                  - password
+              placeholder:
+                type: string
+
+    TokenStorage:
+      type: object
+      description: >
+        Platform-specific encrypted token storage requirements. All platforms
+        MUST encrypt API tokens at rest. Never store tokens in plain text.
+      properties:
+        chrome:
+          type: string
+          default: AES-GCM with PBKDF2 key derivation via Web Crypto API
+        android:
+          type: string
+          default: EncryptedSharedPreferences backed by Android Keystore
+        ios:
+          type: string
+          default: iOS Keychain with kSecAttrAccessibleWhenUnlockedThisDeviceOnly
