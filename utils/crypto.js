@@ -20,14 +20,14 @@ async function deriveKey(salt) {
     encoder.encode(chrome.runtime.id),
     'PBKDF2',
     false,
-    ['deriveKey']
+    ['deriveKey'],
   );
   return crypto.subtle.deriveKey(
     { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
     keyMaterial,
     { name: ALGO, length: 256 },
     false,
-    KEY_USAGE
+    KEY_USAGE,
   );
 }
 

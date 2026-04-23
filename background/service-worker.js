@@ -168,11 +168,7 @@ export async function extractApiErrorMessage(response) {
     if (text) {
       try {
         const json = JSON.parse(text);
-        details =
-          json?.error?.message ||
-          json?.message ||
-          json?.detail ||
-          text;
+        details = json?.error?.message || json?.message || json?.detail || text;
       } catch {
         details = text;
       }

@@ -1,51 +1,85 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="popup.css">
-  <title>Grammar Fix Settings</title>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <svg class="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 20h9"/>
-        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-      </svg>
-      <h1>Grammar Fix</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="popup.css" />
+    <title>Grammar Fix Settings</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <svg
+          class="logo"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+        </svg>
+        <h1>Grammar Fix</h1>
+      </div>
+
+      <form id="settings-form">
+        <div class="field">
+          <label for="apiUrl">API URL</label>
+          <input
+            type="url"
+            id="apiUrl"
+            placeholder="https://api.openai.com/v1"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <div class="field">
+          <label for="model">Model</label>
+          <input
+            type="text"
+            id="model"
+            placeholder="gpt-4o-mini"
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+
+        <div class="field">
+          <label for="token">API Token</label>
+          <div class="token-wrap">
+            <input
+              type="password"
+              id="token"
+              placeholder="sk-..."
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button type="button" id="toggle-token" class="icon-btn" title="Show/hide token">
+              <svg
+                class="eye-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="save-btn">Save Settings</button>
+      </form>
+
+      <div id="toast" class="toast"></div>
     </div>
 
-    <form id="settings-form">
-      <div class="field">
-        <label for="apiUrl">API URL</label>
-        <input type="url" id="apiUrl" placeholder="https://api.openai.com/v1" autocomplete="off" spellcheck="false">
-      </div>
-
-      <div class="field">
-        <label for="model">Model</label>
-        <input type="text" id="model" placeholder="gpt-4o-mini" autocomplete="off" spellcheck="false">
-      </div>
-
-      <div class="field">
-        <label for="token">API Token</label>
-        <div class="token-wrap">
-          <input type="password" id="token" placeholder="sk-..." autocomplete="off" spellcheck="false">
-          <button type="button" id="toggle-token" class="icon-btn" title="Show/hide token">
-            <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <button type="submit" class="save-btn">Save Settings</button>
-    </form>
-
-    <div id="toast" class="toast"></div>
-  </div>
-
-  <script src="popup.js" type="module"></script>
-</body>
+    <script src="popup.js" type="module"></script>
+  </body>
 </html>

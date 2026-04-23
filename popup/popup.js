@@ -13,9 +13,12 @@ function showToast(msg, type = 'success') {
   toast.textContent = msg;
   toast.className = `toast ${type} visible`;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    toast.classList.remove('visible');
-  }, type === 'error' ? 7000 : 2500);
+  toastTimer = setTimeout(
+    () => {
+      toast.classList.remove('visible');
+    },
+    type === 'error' ? 7000 : 2500,
+  );
 }
 
 async function loadSettings() {
@@ -26,7 +29,7 @@ async function loadSettings() {
     if (config.token) {
       tokenInput.value = config.token;
     }
-  } catch (err) {
+  } catch (_err) {
     showToast('Failed to load settings', 'error');
   }
 }
@@ -56,7 +59,7 @@ form.addEventListener('submit', async (e) => {
       token: payload.token,
     });
     showToast('Settings saved and validated');
-  } catch (err) {
+  } catch (_err) {
     showToast('Failed to save settings', 'error');
   }
 });

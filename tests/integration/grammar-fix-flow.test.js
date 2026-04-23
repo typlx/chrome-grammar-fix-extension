@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { saveConfig, getConfig, hasToken } from '../../utils/storage.js';
 import { handleFixGrammar, validateConfig } from '../../background/service-worker.js';
 import { getText, setText, isEditable, shouldAttachTarget } from '../../content/content-core.js';
@@ -8,7 +8,8 @@ describe('grammar fix end-to-end flow', () => {
     it('validates config, saves credentials, and corrects text via the API', async () => {
       vi.stubGlobal(
         'fetch',
-        vi.fn()
+        vi
+          .fn()
           .mockResolvedValueOnce({
             ok: true,
             json: async () => ({
