@@ -26,7 +26,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 });
 
-async function handleFixGrammar(text) {
+export async function handleFixGrammar(text) {
   if (!text || !text.trim()) {
     return { error: 'No text to fix' };
   }
@@ -70,7 +70,7 @@ async function handleFixGrammar(text) {
   return { corrected: corrected.trim() };
 }
 
-async function validateConfig(payload) {
+export async function validateConfig(payload) {
   const apiUrl = payload?.apiUrl?.trim();
   const token = payload?.token?.trim();
   const model = payload?.model?.trim();
@@ -160,7 +160,7 @@ async function validateConfig(payload) {
   return { ok: true };
 }
 
-async function extractApiErrorMessage(response) {
+export async function extractApiErrorMessage(response) {
   const status = response.status;
   let details = '';
   try {
