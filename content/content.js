@@ -1,6 +1,7 @@
 (() => {
   const PROCESSED = new WeakSet();
   const ICON_HOST_ATTR = 'data-gf-host';
+  const DISABLED_SITES_KEY = 'grammarfix_disabled_sites';
   const isGmail = window.location.hostname === 'mail.google.com';
 
   const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -116,13 +117,10 @@
     if (!isEditable(el)) return false;
     if (hasEditableAncestor(el)) return false;
 
-    // Gmail has many editable fields (to/cc/subject/chips). We only want
-    // the message body so one compose window gets one grammar button.
     if (isGmail) {
       return isGmailComposeBody(el);
     }
 
-    // On other sites avoid duplicate buttons on nested editable nodes.
     return true;
   }
 
@@ -142,6 +140,44 @@
       el.dispatchEvent(new Event('change', { bubbles: true }));
     } else {
       el.innerText = text;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  function getSelection(el) {
+    if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+      const start = el.selectionStart;
+      const end = el.selectionEnd;
+      if (start !== end) {
+        return { text: el.value.substring(start, end), start, end };
+      }
+      return null;
+    }
+
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) return null;
+    if (!el.contains(selection.anchorNode)) return null;
+
+    return { text: selection.toString(), range: selection.getRangeAt(0) };
+  }
+
+  function replaceSelection(el, original, corrected) {
+    if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+      const before = el.value.substring(0, original.start);
+      const after = el.value.substring(original.end);
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype,
+        'value',
+      ).set;
+      nativeSetter.call(el, before + corrected + after);
+      el.selectionStart = original.start;
+      el.selectionEnd = original.start + corrected.length;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+      const range = original.range;
+      range.deleteContents();
+      range.insertNode(document.createTextNode(corrected));
       el.dispatchEvent(new Event('input', { bubbles: true }));
     }
   }
@@ -195,7 +231,9 @@
 
       if (btn.classList.contains('loading')) return;
 
-      const text = getText(target);
+      const selection = getSelection(target);
+      const text = selection ? selection.text : getText(target);
+
       if (!text || !text.trim()) {
         showTooltip(tooltip, 'Nothing to fix');
         return;
@@ -217,11 +255,16 @@
           return;
         }
 
-        setText(target, response.corrected);
+        if (selection) {
+          replaceSelection(target, selection, response.corrected);
+        } else {
+          setText(target, response.corrected);
+        }
+
         btn.classList.remove('loading');
         btn.classList.add('success');
         btn.innerHTML = ICON_SVG;
-        showTooltip(tooltip, 'Grammar fixed!');
+        showTooltip(tooltip, selection ? 'Selection fixed!' : 'Text fixed!');
         setTimeout(() => btn.classList.remove('success'), 2000);
       } catch (err) {
         btn.classList.remove('loading');
@@ -255,17 +298,25 @@
     });
   }
 
-  scanAndAttach();
+  async function init() {
+    const result = await chrome.storage.local.get(DISABLED_SITES_KEY);
+    const disabledSites = result[DISABLED_SITES_KEY] || [];
+    if (disabledSites.includes(window.location.hostname)) return;
 
-  const observer = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      for (const node of mutation.addedNodes) {
-        if (node.nodeType !== Node.ELEMENT_NODE) continue;
-        if (shouldAttachTarget(node)) attachIcon(node);
-        scanAndAttach(node);
+    scanAndAttach();
+
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType !== Node.ELEMENT_NODE) continue;
+          if (shouldAttachTarget(node)) attachIcon(node);
+          scanAndAttach(node);
+        }
       }
-    }
-  });
+    });
 
-  observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  init();
 })();

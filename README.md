@@ -1,7 +1,7 @@
-# Chrome Grammar Fix Extension
+# Typlix
 
-AI-powered Chrome grammar checker and writing assistant extension (Manifest V3) for `textarea`, text `input`, and `contenteditable` fields on any website.  
-Click the inline fix button to run grammar and spelling correction through OpenAI-compatible LLM APIs, with secure encrypted token storage and configurable API/model settings.
+Open-source, privacy-first Chrome grammar checker and writing assistant (Manifest V3) for `textarea`, text `input`, and `contenteditable` fields on any website.  
+Click the inline fix button to run grammar and spelling correction through multiple LLM providers, with secure encrypted token storage and configurable API/model settings.
 
 ## Documentation
 
@@ -15,13 +15,13 @@ Click the inline fix button to run grammar and spelling correction through OpenA
   - `input[type="text" | "search" | "email" | "url"]`
   - `contenteditable` elements
 - Works across dynamic pages/apps (SPA friendly)
-- Sends text to an OpenAI-compatible API (`/chat/completions`)
+- Sends text to a configured LLM provider (OpenAI-compatible or Anthropic)
 - Replaces original text with corrected text
 - Provides popup settings:
-  - API URL (default `https://api.openai.com/v1`)
-  - model
-  - token
-- Validates settings on save (`GET /models`) and shows detailed errors
+  - Provider selection (OpenAI-compatible, Anthropic Claude)
+  - API URL, model, and token
+  - Per-site enable/disable toggle
+- Validates settings on save and shows detailed errors
 - Stores token encrypted in `chrome.storage.local` (AES-GCM + PBKDF2)
 
 ## Project Structure
@@ -30,15 +30,22 @@ Click the inline fix button to run grammar and spelling correction through OpenA
 manifest.json
 background/
   service-worker.js
+  providers/
+    anthropic-provider.js
+    openai-provider.js
+    provider-registry.js
 content/
   content.js
+  content-core.js
   content.css
 popup/
   popup.html
   popup.css
   popup.js
 utils/
+  analytics.js
   crypto.js
+  diff.js
   storage.js
 icons/
   icon16.png
@@ -52,17 +59,24 @@ icons/
 
 ```bash
 git clone https://github.com/varteq-company/chrome-grammar-fix-extension.git
-cd chrome_fixgrammarextension
+cd chrome-grammar-fix-extension
 ```
 
-2. Open Chrome extensions page:
+2. Install dependencies:
+
+```bash
+npm install --include=dev
+```
+
+3. Open Chrome extensions page:
    - Navigate to `chrome://extensions`
    - Enable **Developer mode**
    - Click **Load unpacked**
    - Select this project folder
 
-3. Configure the extension:
-   - Click extension icon in toolbar
+4. Configure the extension:
+   - Click the Typlix icon in toolbar
+   - Select your LLM provider
    - Set API URL, model, and token
    - Click **Save Settings**
    - Validation must pass before config is saved
@@ -70,16 +84,16 @@ cd chrome_fixgrammarextension
 ## Usage
 
 1. Focus any supported text field on a page.
-2. Click the fix icon in the field’s bottom-right corner.
+2. Click the fix icon in the field's bottom-right corner.
 3. Wait for response (spinner is shown).
 4. Text is replaced with corrected content.
 
 ## API Compatibility
 
-Expected endpoints (OpenAI-compatible):
+Typlix supports multiple LLM providers:
 
-- `GET {apiUrl}/models`
-- `POST {apiUrl}/chat/completions`
+- **OpenAI-compatible**: Any API implementing `GET /models` and `POST /chat/completions`
+- **Anthropic Claude**: Native Anthropic Messages API
 
 If your provider uses a different schema/path, validation or correction may fail until adapter logic is added.
 
@@ -91,49 +105,7 @@ If your provider uses a different schema/path, validation or correction may fail
 
 ## Contributing
 
-Contributions are welcome. For first-time contributors, start with docs/UI improvements or provider compatibility fixes.
-
-### Branch and commit flow
-
-1. Create feature branch:
-
-```bash
-git checkout -b feat/short-description
-```
-
-2. Make your changes.
-
-3. Load/reload unpacked extension in Chrome and test manually:
-   - save valid/invalid config
-   - verify detailed validation errors
-   - verify grammar fix works on textarea + contenteditable + dynamic page elements
-
-4. Commit with clear message:
-
-```bash
-git add .
-git commit -m "feat: add ..."
-```
-
-5. Push and open Pull Request:
-
-```bash
-git push -u github feat/short-description
-```
-
-### Contribution guidelines
-
-- Keep Manifest V3-compatible code.
-- Do not expose tokens to content scripts or page JS.
-- Keep provider error handling explicit and user-readable.
-- Preserve behavior for dynamic pages (MutationObserver/ResizeObserver flows).
-
-## Roadmap
-
-- Provider adapters for non-OpenAI APIs
-- Per-site enable/disable toggle
-- Better UI states in popup (save button loading state, inline field errors)
-- Optional selection-only grammar fix
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup and workflow details.
 
 ## License
 
