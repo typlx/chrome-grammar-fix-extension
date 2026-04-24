@@ -71,6 +71,44 @@ export function setText(el, text) {
   }
 }
 
+export function getSelection(el) {
+  if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    if (start !== end) {
+      return { text: el.value.substring(start, end), start, end };
+    }
+    return null;
+  }
+
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed) return null;
+  if (!el.contains(selection.anchorNode)) return null;
+
+  return { text: selection.toString(), range: selection.getRangeAt(0) };
+}
+
+export function replaceSelection(el, original, corrected) {
+  if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+    const before = el.value.substring(0, original.start);
+    const after = el.value.substring(original.end);
+    const nativeSetter = Object.getOwnPropertyDescriptor(
+      el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype,
+      'value',
+    ).set;
+    nativeSetter.call(el, before + corrected + after);
+    el.selectionStart = original.start;
+    el.selectionEnd = original.start + corrected.length;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  } else {
+    const range = original.range;
+    range.deleteContents();
+    range.insertNode(document.createTextNode(corrected));
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+}
+
 export function positionHost(host, target) {
   const rect = target.getBoundingClientRect();
   host.style.top = `${rect.top + window.scrollY}px`;

@@ -1,10 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { saveConfig } from '../../utils/storage.js';
-import {
-  handleFixGrammar,
-  validateConfig,
-  extractApiErrorMessage,
-} from '../../background/service-worker.js';
+import { handleFixGrammar, validateConfig } from '../../background/service-worker.js';
+import { extractApiErrorMessage } from '../../background/providers/openai-provider.js';
 
 describe('service-worker', () => {
   describe('handleFixGrammar', () => {
@@ -28,8 +25,9 @@ describe('service-worker', () => {
       expect(result.error).toContain('API token not configured');
     });
 
-    it('calls the LLM API and returns corrected text', async () => {
+    it('calls the OpenAI-compatible API and returns corrected text', async () => {
       await saveConfig({
+        provider: 'openai',
         apiUrl: 'https://api.example.com/v1',
         model: 'test-model',
         token: 'sk-test',
@@ -53,8 +51,34 @@ describe('service-worker', () => {
       expect(options.headers.Authorization).toBe('Bearer sk-test');
     });
 
+    it('calls the Anthropic API when provider is anthropic', async () => {
+      await saveConfig({
+        provider: 'anthropic',
+        apiUrl: 'https://api.anthropic.com/v1',
+        model: 'claude-sonnet-4-20250514',
+        token: 'sk-ant-test',
+      });
+
+      const mockResponse = {
+        ok: true,
+        json: async () => ({
+          content: [{ type: 'text', text: 'Corrected text from Claude.' }],
+        }),
+      };
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
+
+      const result = await handleFixGrammar('fix this plz');
+      expect(result).toEqual({ corrected: 'Corrected text from Claude.' });
+
+      const [url, options] = fetch.mock.calls[0];
+      expect(url).toBe('https://api.anthropic.com/v1/messages');
+      expect(options.headers['x-api-key']).toBe('sk-ant-test');
+      expect(options.headers['anthropic-version']).toBe('2023-06-01');
+    });
+
     it('strips trailing slashes from API URL before calling', async () => {
       await saveConfig({
+        provider: 'openai',
         apiUrl: 'https://api.example.com/v1///',
         model: 'test-model',
         token: 'sk-test',
@@ -76,6 +100,7 @@ describe('service-worker', () => {
 
     it('throws on non-OK API response', async () => {
       await saveConfig({
+        provider: 'openai',
         apiUrl: 'https://api.example.com/v1',
         model: 'test-model',
         token: 'sk-test',
@@ -95,6 +120,7 @@ describe('service-worker', () => {
 
     it('throws when API response has no choices', async () => {
       await saveConfig({
+        provider: 'openai',
         apiUrl: 'https://api.example.com/v1',
         model: 'test-model',
         token: 'sk-test',
@@ -113,164 +139,69 @@ describe('service-worker', () => {
   });
 
   describe('validateConfig', () => {
-    it('rejects when API URL is missing', async () => {
-      const result = await validateConfig({ apiUrl: '', token: 'tk', model: 'gpt-4' });
-      expect(result.ok).toBe(false);
-      expect(result.error).toContain('Missing required field');
-    });
-
-    it('rejects when token is missing', async () => {
-      const result = await validateConfig({
-        apiUrl: 'https://api.openai.com/v1',
-        token: '',
-        model: 'gpt-4',
-      });
-      expect(result.ok).toBe(false);
-      expect(result.error).toContain('Missing required field');
-    });
-
-    it('rejects when model is missing', async () => {
-      const result = await validateConfig({
-        apiUrl: 'https://api.openai.com/v1',
-        token: 'tk',
-        model: '',
-      });
-      expect(result.ok).toBe(false);
-      expect(result.error).toContain('Missing required field');
-    });
-
-    it('rejects non-http/https URL protocols', async () => {
-      const result = await validateConfig({
-        apiUrl: 'ftp://api.example.com',
-        token: 'tk',
-        model: 'gpt-4',
-      });
-      expect(result.ok).toBe(false);
-      expect(result.error).toContain('http:// or https://');
-    });
-
-    it('rejects malformed URLs', async () => {
-      const result = await validateConfig({
-        apiUrl: 'not-a-url',
-        token: 'tk',
-        model: 'gpt-4',
-      });
-      expect(result.ok).toBe(false);
-      expect(result.error).toContain('Invalid API URL format');
-    });
-
-    it('reports network errors when API is unreachable', async () => {
-      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('ECONNREFUSED')));
-
-      const result = await validateConfig({
-        apiUrl: 'https://unreachable.api.com/v1',
-        token: 'tk',
-        model: 'gpt-4',
-      });
-      expect(result.ok).toBe(false);
-      expect(result.error).toContain('Cannot reach API URL');
-      expect(result.error).toContain('ECONNREFUSED');
-    });
-
-    it('reports authentication errors from the API', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({
-          ok: false,
-          status: 401,
-          text: async () => JSON.stringify({ error: { message: 'Invalid API key' } }),
-        }),
-      );
-
-      const result = await validateConfig({
-        apiUrl: 'https://api.openai.com/v1',
-        token: 'bad-token',
-        model: 'gpt-4',
-      });
-      expect(result.ok).toBe(false);
-      expect(result.error).toContain('Unauthorized (401)');
-    });
-
-    it('reports non-JSON responses from models endpoint', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({
-          ok: true,
-          json: async () => {
-            throw new SyntaxError('Unexpected token');
-          },
-        }),
-      );
-
-      const result = await validateConfig({
-        apiUrl: 'https://api.openai.com/v1',
-        token: 'tk',
-        model: 'gpt-4',
-      });
-      expect(result.ok).toBe(false);
-      expect(result.error).toContain('non-JSON response');
-    });
-
-    it('reports unsupported response format when data array is missing', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({
-          ok: true,
-          json: async () => ({ models: ['gpt-4'] }),
-        }),
-      );
-
-      const result = await validateConfig({
-        apiUrl: 'https://api.openai.com/v1',
-        token: 'tk',
-        model: 'gpt-4',
-      });
-      expect(result.ok).toBe(false);
-      expect(result.error).toContain('unsupported');
-    });
-
-    it('reports when the requested model is not found, with suggestions', async () => {
+    it('delegates to the OpenAI provider for openai config', async () => {
       vi.stubGlobal(
         'fetch',
         vi.fn().mockResolvedValue({
           ok: true,
           json: async () => ({
-            data: [{ id: 'gpt-3.5-turbo' }, { id: 'gpt-4' }, { id: 'gpt-4-turbo' }],
+            data: [{ id: 'gpt-4o-mini' }],
           }),
         }),
       );
 
       const result = await validateConfig({
-        apiUrl: 'https://api.openai.com/v1',
-        token: 'tk',
-        model: 'gpt-5-nonexistent',
-      });
-      expect(result.ok).toBe(false);
-      expect(result.error).toContain('not found');
-      expect(result.error).toContain('gpt-3.5-turbo');
-    });
-
-    it('returns ok when config is valid and model exists', async () => {
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({
-          ok: true,
-          json: async () => ({
-            data: [{ id: 'gpt-4o-mini' }, { id: 'gpt-4' }],
-          }),
-        }),
-      );
-
-      const result = await validateConfig({
+        provider: 'openai',
         apiUrl: 'https://api.openai.com/v1',
         token: 'sk-valid',
         model: 'gpt-4o-mini',
       });
       expect(result).toEqual({ ok: true });
     });
+
+    it('delegates to the Anthropic provider for anthropic config', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            content: [{ type: 'text', text: 'Hi' }],
+          }),
+        }),
+      );
+
+      const result = await validateConfig({
+        provider: 'anthropic',
+        apiUrl: 'https://api.anthropic.com/v1',
+        token: 'sk-ant-valid',
+        model: 'claude-sonnet-4-20250514',
+      });
+      expect(result).toEqual({ ok: true });
+    });
+
+    it('rejects unknown providers', async () => {
+      const result = await validateConfig({
+        provider: 'nonexistent',
+        apiUrl: 'https://api.example.com',
+        token: 'tk',
+        model: 'model',
+      });
+      expect(result.ok).toBe(false);
+      expect(result.error).toContain('Unknown provider');
+    });
+
+    it('defaults to openai when provider is not specified', async () => {
+      const result = await validateConfig({
+        apiUrl: '',
+        token: 'tk',
+        model: 'gpt-4',
+      });
+      expect(result.ok).toBe(false);
+      expect(result.error).toContain('Missing required field');
+    });
   });
 
-  describe('extractApiErrorMessage', () => {
+  describe('extractApiErrorMessage (OpenAI provider)', () => {
     async function makeResponse(status, body) {
       return {
         status,

@@ -21,16 +21,16 @@ Most grammar checkers send every keystroke to a proprietary cloud. Typlix takes 
 
 ## Typlix vs. Alternatives
 
-| Feature | Typlix | Grammarly | LanguageTool |
-|---------|--------|-----------|--------------|
-| Open source | Yes (MIT) | No | Partially |
-| Privacy | Your API key, your data | Cloud-processed | Cloud-processed (self-host option) |
-| Bring your own LLM | Yes | No | No |
-| Local/offline models | Yes (via Ollama, etc.) | No | Self-hosted server only |
-| Price | Free + your API costs | Free tier / $30/mo | Free tier / $5/mo |
-| Chrome extension | Yes (Manifest V3) | Yes | Yes |
-| Per-site toggle | Yes | Yes | Yes |
-| Token encryption | AES-GCM at rest | Proprietary | N/A |
+| Feature              | Typlix                  | Grammarly          | LanguageTool                       |
+| -------------------- | ----------------------- | ------------------ | ---------------------------------- |
+| Open source          | Yes (MIT)               | No                 | Partially                          |
+| Privacy              | Your API key, your data | Cloud-processed    | Cloud-processed (self-host option) |
+| Bring your own LLM   | Yes                     | No                 | No                                 |
+| Local/offline models | Yes (via Ollama, etc.)  | No                 | Self-hosted server only            |
+| Price                | Free + your API costs   | Free tier / $30/mo | Free tier / $5/mo                  |
+| Chrome extension     | Yes (Manifest V3)       | Yes                | Yes                                |
+| Per-site toggle      | Yes                     | Yes                | Yes                                |
+| Token encryption     | AES-GCM at rest         | Proprietary        | N/A                                |
 
 ## Install
 
@@ -70,10 +70,10 @@ Typlix works with `textarea`, `input[type="text" | "search" | "email" | "url"]`,
 
 ## Supported Providers
 
-| Provider | Endpoints Used |
-|----------|---------------|
+| Provider              | Endpoints Used                          |
+| --------------------- | --------------------------------------- |
 | **OpenAI-compatible** | `GET /models`, `POST /chat/completions` |
-| **Anthropic Claude** | Native Anthropic Messages API |
+| **Anthropic Claude**  | Native Anthropic Messages API           |
 
 Any API that implements the OpenAI chat completions interface works — including local model servers like Ollama, LM Studio, and vLLM.
 

@@ -5,6 +5,8 @@ import {
   shouldAttachTarget,
   getText,
   setText,
+  getSelection,
+  replaceSelection,
   positionHost,
   showTooltip,
 } from '../../content/content-core.js';
@@ -198,6 +200,67 @@ describe('content-core', () => {
 
       expect(el.innerText).toBe('edited content');
       expect(inputSpy).toHaveBeenCalledTimes(1);
+      el.remove();
+    });
+  });
+
+  describe('getSelection from textarea', () => {
+    it('returns selected text and offsets when a range is selected', () => {
+      const el = document.createElement('textarea');
+      el.value = 'hello cruel world';
+      document.body.appendChild(el);
+      el.selectionStart = 6;
+      el.selectionEnd = 11;
+
+      const sel = getSelection(el);
+      expect(sel).not.toBeNull();
+      expect(sel.text).toBe('cruel');
+      expect(sel.start).toBe(6);
+      expect(sel.end).toBe(11);
+      el.remove();
+    });
+
+    it('returns null when no text is selected in textarea', () => {
+      const el = document.createElement('textarea');
+      el.value = 'hello world';
+      document.body.appendChild(el);
+      el.selectionStart = 5;
+      el.selectionEnd = 5;
+
+      expect(getSelection(el)).toBeNull();
+      el.remove();
+    });
+  });
+
+  describe('replaceSelection in textarea', () => {
+    it('replaces the selected range with corrected text', () => {
+      const el = document.createElement('textarea');
+      el.value = 'I hav a cat';
+      document.body.appendChild(el);
+
+      const original = { start: 2, end: 5 };
+      replaceSelection(el, original, 'have');
+
+      expect(el.value).toBe('I have a cat');
+      expect(el.selectionStart).toBe(2);
+      expect(el.selectionEnd).toBe(6);
+      el.remove();
+    });
+
+    it('dispatches input and change events after replacement', () => {
+      const el = document.createElement('textarea');
+      el.value = 'abc';
+      document.body.appendChild(el);
+
+      const inputSpy = vi.fn();
+      const changeSpy = vi.fn();
+      el.addEventListener('input', inputSpy);
+      el.addEventListener('change', changeSpy);
+
+      replaceSelection(el, { start: 0, end: 3 }, 'xyz');
+
+      expect(inputSpy).toHaveBeenCalledTimes(1);
+      expect(changeSpy).toHaveBeenCalledTimes(1);
       el.remove();
     });
   });
