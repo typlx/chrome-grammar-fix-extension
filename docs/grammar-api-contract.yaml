@@ -128,7 +128,12 @@ components:
             - self_hosted
             - local
           default: cloud
-          description: Where the processing happened
+          description: >
+            Where the processing happened. "cloud" uses a hosted LLM API
+            (OpenAI, Anthropic). "self_hosted" uses a user-managed LLM
+            instance (e.g. local Ollama or vLLM). "local" is a stub for
+            future on-device model support — implementations should accept
+            it but may return a not-yet-supported error.
 
     GrammarChange:
       type: object
@@ -268,7 +273,10 @@ components:
       type: object
       description: >
         Interface specification for provider adapters. Each platform (JS, Kotlin,
-        Swift) implements this interface for every supported provider.
+        Swift) implements this interface for every supported provider. Each adapter
+        MUST implement two methods: fixGrammar(text, systemPrompt, config) matching
+        the /grammar/fix contract, and validateConfig(config) matching the
+        /provider/validate contract.
       properties:
         id:
           type: string
