@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build extension zip
         run: |
-          zip -r grammar-fix-extension.zip \
+          zip -r typlix-extension.zip \
             manifest.json \
             background/ \
             content/ \
@@ -51,6 +51,6 @@ jobs:
             -x "*.test.js"
       - uses: actions/upload-artifact@v4
         with:
-          name: grammar-fix-extension
-          path: grammar-fix-extension.zip
+          name: typlix-extension
+          path: typlix-extension.zip
           retention-days: 30

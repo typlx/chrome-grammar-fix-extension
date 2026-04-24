@@ -1,13 +1,14 @@
-# Chrome Grammar Fix Extension
+# Typlix — Chrome Grammar Extension
 
-Chrome Manifest V3 extension that fixes grammar and spelling in any text field using an LLM API (OpenAI-compatible).
+Chrome Manifest V3 extension that fixes grammar and spelling in any text field using multiple LLM providers (OpenAI-compatible and Anthropic).
 
 ## Architecture
 
 - **background/service-worker.js** — Chrome service worker handling API calls and config validation via message passing
+- **background/providers/** — Provider adapter modules (OpenAI, Anthropic) with a registry
 - **content/content.js** — Content script injecting grammar-fix buttons into editable elements (IIFE, not a module)
 - **content/content-core.js** — Exported pure functions for DOM detection and text manipulation (testable)
-- **popup/popup.js** — Settings UI logic for API URL, model, and token configuration
+- **popup/popup.js** — Settings UI logic for provider selection, API config, and per-site toggles
 - **utils/crypto.js** — AES-GCM encryption for token storage using PBKDF2 key derivation
 - **utils/storage.js** — Chrome storage wrapper with encrypted token support
 

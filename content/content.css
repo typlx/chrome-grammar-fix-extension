@@ -1,4 +1,4 @@
-/* Host container for the grammar fix button - positioned via JS */
+/* Host container for the fix button - positioned via JS */
 div[data-gf-host] {
   position: absolute;
   z-index: 2147483647;

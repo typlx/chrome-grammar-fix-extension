@@ -1,6 +1,6 @@
 # User Guide
 
-This guide shows how to configure and use the extension on any website.
+This guide shows how to configure and use Typlix on any website.
 
 ## 1) Load Extension in Chrome
 
@@ -8,18 +8,18 @@ This guide shows how to configure and use the extension on any website.
 
 ```bash
 git clone https://github.com/varteq-company/chrome-grammar-fix-extension.git
-cd chrome_fixgrammarextension
+cd chrome-grammar-fix-extension
 ```
 
 2. Open Chrome Extension Manager: `chrome://extensions`
 3. Enable **Developer mode**
 4. Click **Load unpacked**
-5. Select the folder where you checked out this project (`chrome_fixgrammarextension`)
+5. Select the folder where you checked out this project
 
 ## 2) Open Extension Settings
 
-1. Open Chrome and pin the extension icon to the toolbar (optional but convenient).
-2. Click the extension icon.
+1. Open Chrome and pin the Typlix icon to the toolbar (optional but convenient).
+2. Click the Typlix icon.
 3. The settings popup opens.
 
 ![Settings popup](docs/images/settings-popup.png)
@@ -28,22 +28,23 @@ cd chrome_fixgrammarextension
 
 In the popup:
 
-- **API URL**: default is `https://api.openai.com/v1`
-- **Model**: for example `gpt-4o-mini`
+- **Provider**: Choose OpenAI Compatible or Anthropic Claude
+- **API URL**: default depends on selected provider
+- **Model**: for example `gpt-4o-mini` or `claude-sonnet-4-20250514`
 - **API Token**: your provider token
 
 Then click **Save Settings**.
 
 What happens on save:
 
-- Extension calls `GET {apiUrl}/models`
+- Typlix validates your configuration against the provider API
 - Verifies token is valid
 - Verifies model exists for that token
 - Saves only if validation succeeds
 
 If validation fails, you will get a detailed error (for example invalid URL, unauthorized token, model not found, rate limit).
 
-## 4) Use Grammar Fix on a Website
+## 4) Use Typlix on a Website
 
 1. Open any site with a text field (textarea, text input, or contenteditable).
 2. Type text with mistakes.
@@ -63,6 +64,6 @@ If validation fails, you will get a detailed error (for example invalid URL, una
 ## 6) Troubleshooting
 
 - **Unauthorized (401)**: token is wrong/expired
-- **Endpoint not found (404)**: API URL is wrong (OpenAI should be `https://api.openai.com/v1`)
+- **Endpoint not found (404)**: API URL is wrong
 - **Model not found**: choose a model available for your token
 - **Rate limit (429)**: quota exceeded, try later or use another key

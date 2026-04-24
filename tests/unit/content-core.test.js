@@ -230,9 +230,9 @@ describe('content-core', () => {
   describe('showTooltip', () => {
     it('sets message text and adds visible class', () => {
       const tooltip = document.createElement('div');
-      showTooltip(tooltip, 'Grammar fixed!');
+      showTooltip(tooltip, 'Text fixed!');
 
-      expect(tooltip.textContent).toBe('Grammar fixed!');
+      expect(tooltip.textContent).toBe('Text fixed!');
       expect(tooltip.classList.contains('visible')).toBe(true);
     });
 
