@@ -109,6 +109,17 @@ export function replaceSelection(el, original, corrected) {
   }
 }
 
+export function renderDiffHtml(diff) {
+  return diff
+    .map((d) => {
+      const escaped = d.value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      if (d.type === 'removed') return `<span class="gf-diff-removed">${escaped}</span>`;
+      if (d.type === 'added') return `<span class="gf-diff-added">${escaped}</span>`;
+      return escaped;
+    })
+    .join('');
+}
+
 export function positionHost(host, target) {
   const rect = target.getBoundingClientRect();
   host.style.top = `${rect.top + window.scrollY}px`;

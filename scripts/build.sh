@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+DIST="$ROOT/dist"
+
+SHARED_FILES=(
+  background/
+  content/
+  popup/
+  icons/
+  utils/
+)
+
+build_target() {
+  local target="$1"
+  local manifest="$2"
+  local outdir="$DIST/$target"
+
+  rm -rf "$outdir"
+  mkdir -p "$outdir"
+
+  for item in "${SHARED_FILES[@]}"; do
+    if [ -d "$ROOT/$item" ]; then
+      cp -r "$ROOT/$item" "$outdir/$item"
+    elif [ -f "$ROOT/$item" ]; then
+      cp "$ROOT/$item" "$outdir/$item"
+    fi
+  done
+
+  cp "$ROOT/$manifest" "$outdir/manifest.json"
+
+  echo "Built $target -> $outdir"
+}
+
+echo "Building Typlix extension..."
+
+build_target "chrome" "manifest.json"
+build_target "firefox" "manifest.firefox.json"
+
+if command -v zip &>/dev/null; then
+  (cd "$DIST/chrome" && zip -r "$DIST/typlix-chrome.zip" . -q)
+  (cd "$DIST/firefox" && zip -r "$DIST/typlix-firefox.zip" . -q)
+  echo "Packaged: dist/typlix-chrome.zip, dist/typlix-firefox.zip"
+else
+  echo "zip not found — skipping packaging, use dist/ directories directly"
+fi
+
+echo "Done."

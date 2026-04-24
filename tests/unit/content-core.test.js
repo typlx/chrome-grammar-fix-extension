@@ -7,9 +7,11 @@ import {
   setText,
   getSelection,
   replaceSelection,
+  renderDiffHtml,
   positionHost,
   showTooltip,
 } from '../../content/content-core.js';
+import { computeWordDiff } from '../../utils/diff.js';
 
 describe('content-core', () => {
   describe('isEditable', () => {
@@ -262,6 +264,44 @@ describe('content-core', () => {
       expect(inputSpy).toHaveBeenCalledTimes(1);
       expect(changeSpy).toHaveBeenCalledTimes(1);
       el.remove();
+    });
+  });
+
+  describe('renderDiffHtml', () => {
+    it('wraps removed tokens in strikethrough spans', () => {
+      const diff = [{ type: 'removed', value: 'hav' }];
+      const html = renderDiffHtml(diff);
+      expect(html).toContain('gf-diff-removed');
+      expect(html).toContain('hav');
+    });
+
+    it('wraps added tokens in highlight spans', () => {
+      const diff = [{ type: 'added', value: 'have' }];
+      const html = renderDiffHtml(diff);
+      expect(html).toContain('gf-diff-added');
+      expect(html).toContain('have');
+    });
+
+    it('renders equal tokens as plain text', () => {
+      const diff = [{ type: 'equal', value: 'hello' }];
+      const html = renderDiffHtml(diff);
+      expect(html).toBe('hello');
+      expect(html).not.toContain('class=');
+    });
+
+    it('escapes HTML characters to prevent XSS', () => {
+      const diff = [{ type: 'equal', value: '<script>alert("xss")</script>' }];
+      const html = renderDiffHtml(diff);
+      expect(html).not.toContain('<script>');
+      expect(html).toContain('&lt;script&gt;');
+    });
+
+    it('produces a complete diff preview from word diff output', () => {
+      const diff = computeWordDiff('I hav a cat', 'I have a cat');
+      const html = renderDiffHtml(diff);
+      expect(html).toContain('gf-diff-removed');
+      expect(html).toContain('gf-diff-added');
+      expect(html).toContain('I');
     });
   });
 
