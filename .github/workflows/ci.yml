@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build extension zip
         run: |
-          zip -r typlix-extension.zip \
+          zip -r typlx-extension.zip \
             manifest.json \
             background/ \
             content/ \
@@ -51,6 +51,6 @@ jobs:
             -x "*.test.js"
       - uses: actions/upload-artifact@v4
         with:
-          name: typlix-extension
-          path: typlix-extension.zip
+          name: typlx-extension
+          path: typlx-extension.zip
           retention-days: 30

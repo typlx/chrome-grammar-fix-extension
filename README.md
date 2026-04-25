@@ -1,27 +1,27 @@
-# Typlix
+# Typlx
 
 **The open-source, privacy-first grammar checker for your browser.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/varteq-company/chrome-grammar-fix-extension/actions/workflows/ci.yml/badge.svg)](https://github.com/varteq-company/chrome-grammar-fix-extension/actions/workflows/ci.yml)
 
-Typlix fixes grammar and spelling in any text field on any website — powered by the LLM of your choice. Your text stays between you and your API provider. No third-party servers, no data harvesting, no accounts required.
+Typlx fixes grammar and spelling in any text field on any website — powered by the LLM of your choice. Your text stays between you and your API provider. No third-party servers, no data harvesting, no accounts required.
 
 <!-- TODO: add demo GIF here once recorded -->
-<!-- ![Typlix demo](docs/images/typlix-demo.gif) -->
+<!-- ![Typlx demo](docs/images/typlx-demo.gif) -->
 
-## Why Typlix?
+## Why Typlx?
 
-Most grammar checkers send every keystroke to a proprietary cloud. Typlix takes a different approach:
+Most grammar checkers send every keystroke to a proprietary cloud. Typlx takes a different approach:
 
 - **You own your data.** Text is sent only to the LLM provider you configure — no intermediary.
 - **Bring your own model.** Use OpenAI, Anthropic Claude, or any OpenAI-compatible API (local models via Ollama, LM Studio, etc.).
 - **Open source.** MIT licensed. Audit the code, fork it, contribute.
-- **Works everywhere.** Textareas, inputs, contenteditable fields, SPAs, Gmail compose — if you can type in it, Typlix can fix it.
+- **Works everywhere.** Textareas, inputs, contenteditable fields, SPAs, Gmail compose — if you can type in it, Typlx can fix it.
 
-## Typlix vs. Alternatives
+## Typlx vs. Alternatives
 
-| Feature              | Typlix                  | Grammarly          | LanguageTool                       |
+| Feature              | Typlx                  | Grammarly          | LanguageTool                       |
 | -------------------- | ----------------------- | ------------------ | ---------------------------------- |
 | Open source          | Yes (MIT)               | No                 | Partially                          |
 | Privacy              | Your API key, your data | Cloud-processed    | Cloud-processed (self-host option) |
@@ -36,7 +36,7 @@ Most grammar checkers send every keystroke to a proprietary cloud. Typlix takes 
 
 <!-- TODO: uncomment when published to Chrome Web Store -->
 <!-- ### Chrome Web Store (recommended) -->
-<!-- [Install Typlix](https://chrome.google.com/webstore/detail/typlix/EXTENSION_ID) from the Chrome Web Store. -->
+<!-- [Install Typlx](https://chrome.google.com/webstore/detail/typlx/EXTENSION_ID) from the Chrome Web Store. -->
 
 ### From Source
 
@@ -54,7 +54,7 @@ npm install --include=dev
    - Click **Load unpacked** and select this project folder
 
 3. Configure:
-   - Click the Typlix icon in the toolbar
+   - Click the Typlx icon in the toolbar
    - Select your LLM provider (OpenAI-compatible or Anthropic Claude)
    - Enter your API URL, model, and token
    - Click **Save Settings**
@@ -66,7 +66,7 @@ npm install --include=dev
 3. Wait for the correction (a spinner shows progress).
 4. Done — your text is replaced with the corrected version.
 
-Typlix works with `textarea`, `input[type="text" | "search" | "email" | "url"]`, and `contenteditable` elements. It handles dynamic/SPA pages automatically.
+Typlx works with `textarea`, `input[type="text" | "search" | "email" | "url"]`, and `contenteditable` elements. It handles dynamic/SPA pages automatically.
 
 ## Supported Providers
 

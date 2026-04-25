@@ -1,4 +1,4 @@
-# Typlix — Chrome Grammar Extension
+# Typlx — Chrome Grammar Extension
 
 Chrome Manifest V3 extension that fixes grammar and spelling in any text field using multiple LLM providers (OpenAI-compatible and Anthropic).
 

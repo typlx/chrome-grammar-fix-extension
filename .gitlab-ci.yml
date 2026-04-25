@@ -42,7 +42,7 @@ package:
   script:
     - apk add --no-cache zip
     - |
-      zip -r typlix-extension.zip \
+      zip -r typlx-extension.zip \
         manifest.json \
         background/ \
         content/ \
@@ -52,5 +52,5 @@ package:
         -x "*.test.js"
   artifacts:
     paths:
-      - typlix-extension.zip
+      - typlx-extension.zip
     expire_in: 30 days
