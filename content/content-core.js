@@ -1,7 +1,6 @@
 export function isEditable(el) {
   if (el.tagName === 'TEXTAREA') return true;
-  if (el.tagName === 'INPUT' && ['text', 'search', 'email', 'url'].includes(el.type))
-    return true;
+  if (el.tagName === 'INPUT' && ['text', 'search', 'email', 'url'].includes(el.type)) return true;
   if (el.isContentEditable) return true;
   return false;
 }

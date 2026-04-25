@@ -1,0 +1,8 @@
+node_modules
+coverage
+dist
+*.zip
+*.crx
+*.pem
+icons
+docs
