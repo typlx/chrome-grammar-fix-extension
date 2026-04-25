@@ -1,6 +1,6 @@
 # User Guide
 
-This guide shows how to configure and use Typlix on any website.
+This guide shows how to configure and use Typlx on any website.
 
 ## 1) Load Extension in Chrome
 
@@ -18,8 +18,8 @@ cd chrome-grammar-fix-extension
 
 ## 2) Open Extension Settings
 
-1. Open Chrome and pin the Typlix icon to the toolbar (optional but convenient).
-2. Click the Typlix icon.
+1. Open Chrome and pin the Typlx icon to the toolbar (optional but convenient).
+2. Click the Typlx icon.
 3. The settings popup opens.
 
 ![Settings popup](docs/images/settings-popup.png)
@@ -37,14 +37,14 @@ Then click **Save Settings**.
 
 What happens on save:
 
-- Typlix validates your configuration against the provider API
+- Typlx validates your configuration against the provider API
 - Verifies token is valid
 - Verifies model exists for that token
 - Saves only if validation succeeds
 
 If validation fails, you will get a detailed error (for example invalid URL, unauthorized token, model not found, rate limit).
 
-## 4) Use Typlix on a Website
+## 4) Use Typlx on a Website
 
 1. Open any site with a text field (textarea, text input, or contenteditable).
 2. Type text with mistakes.

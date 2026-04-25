@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Typlix",
+  "name": "Typlx",
   "version": "2.0.0",
   "description": "Open-source, privacy-first grammar and spelling checker for any text field",
   "browser_specific_settings": {
     "gecko": {
-      "id": "typlix@varteq.com",
+      "id": "typlx@varteq.com",
       "strict_min_version": "128.0"
     }
   },

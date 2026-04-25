@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Typlix",
+  "name": "Typlx",
   "version": "2.0.0",
   "description": "Open-source, privacy-first grammar and spelling checker for any text field",
   "permissions": ["storage", "activeTab", "tabs"],

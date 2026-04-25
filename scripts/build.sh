@@ -33,15 +33,15 @@ build_target() {
   echo "Built $target -> $outdir"
 }
 
-echo "Building Typlix extension..."
+echo "Building Typlx extension..."
 
 build_target "chrome" "manifest.json"
 build_target "firefox" "manifest.firefox.json"
 
 if command -v zip &>/dev/null; then
-  (cd "$DIST/chrome" && zip -r "$DIST/typlix-chrome.zip" . -q)
-  (cd "$DIST/firefox" && zip -r "$DIST/typlix-firefox.zip" . -q)
-  echo "Packaged: dist/typlix-chrome.zip, dist/typlix-firefox.zip"
+  (cd "$DIST/chrome" && zip -r "$DIST/typlx-chrome.zip" . -q)
+  (cd "$DIST/firefox" && zip -r "$DIST/typlx-firefox.zip" . -q)
+  echo "Packaged: dist/typlx-chrome.zip, dist/typlx-firefox.zip"
 else
   echo "zip not found — skipping packaging, use dist/ directories directly"
 fi

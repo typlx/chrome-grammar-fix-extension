@@ -2,7 +2,7 @@
 
 ### Changes
 
-- Rebrand extension from "Grammar Fix" to **Typlix** across all user-facing surfaces.
+- Rebrand extension from "Grammar Fix" to **Typlx** across all user-facing surfaces.
 - Add multi-provider support (OpenAI-compatible and Anthropic Claude).
 - Add per-site enable/disable toggle in popup.
 - Add provider adapter architecture.
