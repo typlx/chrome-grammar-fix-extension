@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Typlix Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 40px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      padding: 12px 16px;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 6px 6px 0 0;
+      border-bottom: none;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #6c63ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .header-text {
+      font-size: 14px;
+    }
+
+    .header-text strong { color: #c9d1d9; }
+    .header-text span { color: #8b949e; }
+
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-bottom: none;
+      padding: 0 16px;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      font-size: 13px;
+      color: #8b949e;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      color: #c9d1d9;
+      border-bottom-color: #f78166;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 160px;
+      padding: 16px;
+      background: #0d1117;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      border-radius: 0 0 6px 6px;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #58a6ff;
+      box-shadow: 0 0 0 3px rgba(56, 139, 253, 0.15);
+    }
+
+    textarea::placeholder {
+      color: #484f58;
+    }
+
+    .hint {
+      margin-top: 16px;
+      text-align: center;
+      font-size: 13px;
+      color: #484f58;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="avatar">T</div>
+      <div class="header-text">
+        <strong>typlix-user</strong> <span>commented just now</span>
+      </div>
+    </div>
+    <div class="tab-bar">
+      <div class="tab active">Write</div>
+      <div class="tab">Preview</div>
+    </div>
+    <textarea placeholder="Leave a comment">We are exiting to announce Typlix, an open-source grammar check tool that respects your privcy. Unlike other tools, Typlix dont send your text to third-party servers.</textarea>
+    <p class="hint">Typlix demo page &mdash; click the fix icon in the textarea to see it in action</p>
+  </div>
+</body>
+</html>

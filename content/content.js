@@ -1,6 +1,7 @@
 (() => {
   const PROCESSED = new WeakSet();
   const ICON_HOST_ATTR = 'data-gf-host';
+  const DISABLED_SITES_KEY = 'grammarfix_disabled_sites';
   const isGmail = window.location.hostname === 'mail.google.com';
 
   const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -70,6 +71,71 @@
     @keyframes gf-spin {
       to { transform: rotate(360deg); }
     }
+    .gf-preview {
+      pointer-events: auto;
+      position: absolute;
+      bottom: 42px;
+      right: 0;
+      width: 340px;
+      max-height: 260px;
+      background: #1e1e2e;
+      color: #e0e0e0;
+      font-family: system-ui, sans-serif;
+      font-size: 13px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.45);
+      overflow: hidden;
+      display: none;
+      flex-direction: column;
+    }
+    .gf-preview.visible { display: flex; }
+    .gf-preview-header {
+      padding: 8px 12px;
+      font-weight: 600;
+      font-size: 12px;
+      color: #a0a0b8;
+      border-bottom: 1px solid #2a2a3e;
+    }
+    .gf-preview-diff {
+      padding: 10px 12px;
+      line-height: 1.6;
+      overflow-y: auto;
+      flex: 1;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .gf-diff-removed {
+      background: rgba(239,68,68,.2);
+      color: #fca5a5;
+      text-decoration: line-through;
+      border-radius: 2px;
+      padding: 0 2px;
+    }
+    .gf-diff-added {
+      background: rgba(34,197,94,.2);
+      color: #86efac;
+      border-radius: 2px;
+      padding: 0 2px;
+    }
+    .gf-preview-actions {
+      display: flex;
+      gap: 8px;
+      padding: 8px 12px;
+      border-top: 1px solid #2a2a3e;
+    }
+    .gf-preview-actions button {
+      flex: 1;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 0;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .gf-preview-actions button:hover { opacity: 0.85; }
+    .gf-accept { background: #22c55e; color: #fff; }
+    .gf-reject { background: #3a3a50; color: #ccc; }
   `;
 
   function isEditable(el) {
@@ -116,13 +182,10 @@
     if (!isEditable(el)) return false;
     if (hasEditableAncestor(el)) return false;
 
-    // Gmail has many editable fields (to/cc/subject/chips). We only want
-    // the message body so one compose window gets one grammar button.
     if (isGmail) {
       return isGmailComposeBody(el);
     }
 
-    // On other sites avoid duplicate buttons on nested editable nodes.
     return true;
   }
 
@@ -146,6 +209,44 @@
     }
   }
 
+  function getSelection(el) {
+    if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+      const start = el.selectionStart;
+      const end = el.selectionEnd;
+      if (start !== end) {
+        return { text: el.value.substring(start, end), start, end };
+      }
+      return null;
+    }
+
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) return null;
+    if (!el.contains(selection.anchorNode)) return null;
+
+    return { text: selection.toString(), range: selection.getRangeAt(0) };
+  }
+
+  function replaceSelection(el, original, corrected) {
+    if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+      const before = el.value.substring(0, original.start);
+      const after = el.value.substring(original.end);
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype,
+        'value',
+      ).set;
+      nativeSetter.call(el, before + corrected + after);
+      el.selectionStart = original.start;
+      el.selectionEnd = original.start + corrected.length;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+      const range = original.range;
+      range.deleteContents();
+      range.insertNode(document.createTextNode(corrected));
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
   function positionHost(host, target) {
     const rect = target.getBoundingClientRect();
     host.style.top = `${rect.top + window.scrollY}px`;
@@ -158,6 +259,78 @@
     tooltip.textContent = msg;
     tooltip.classList.add('visible');
     setTimeout(() => tooltip.classList.remove('visible'), duration);
+  }
+
+  function computeWordDiff(original, corrected) {
+    const tokenize = (t) => t.match(/\S+|\s+/g) || [];
+    const a = tokenize(original);
+    const b = tokenize(corrected);
+    const m = a.length,
+      n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 1; i <= m; i++)
+      for (let j = 1; j <= n; j++)
+        dp[i][j] =
+          a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+    const lcs = [];
+    let i = m,
+      j = n;
+    while (i > 0 && j > 0) {
+      if (a[i - 1] === b[j - 1]) {
+        lcs.unshift(a[i - 1]);
+        i--;
+        j--;
+      } else if (dp[i - 1][j] > dp[i][j - 1]) i--;
+      else j--;
+    }
+    const changes = [];
+    let oi = 0,
+      ci = 0,
+      li = 0;
+    while (oi < a.length || ci < b.length) {
+      if (
+        li < lcs.length &&
+        oi < a.length &&
+        ci < b.length &&
+        a[oi] === lcs[li] &&
+        b[ci] === lcs[li]
+      ) {
+        changes.push({ type: 'equal', value: a[oi] });
+        oi++;
+        ci++;
+        li++;
+      } else if (li < lcs.length && oi < a.length && a[oi] !== lcs[li]) {
+        changes.push({ type: 'removed', value: a[oi] });
+        oi++;
+      } else if (li < lcs.length && ci < b.length && b[ci] !== lcs[li]) {
+        changes.push({ type: 'added', value: b[ci] });
+        ci++;
+      } else if (li >= lcs.length && oi < a.length) {
+        changes.push({ type: 'removed', value: a[oi] });
+        oi++;
+      } else if (li >= lcs.length && ci < b.length) {
+        changes.push({ type: 'added', value: b[ci] });
+        ci++;
+      }
+    }
+    const merged = [];
+    for (const c of changes) {
+      const last = merged[merged.length - 1];
+      if (last && last.type === c.type) last.value += c.value;
+      else merged.push({ ...c });
+    }
+    return merged;
+  }
+
+  function renderDiffHtml(diff) {
+    return diff
+      .map((d) => {
+        const escaped = d.value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        if (d.type === 'removed') return `<span class="gf-diff-removed">${escaped}</span>`;
+        if (d.type === 'added') return `<span class="gf-diff-added">${escaped}</span>`;
+        return escaped;
+      })
+      .join('');
   }
 
   function attachIcon(target) {
@@ -179,7 +352,20 @@
     const tooltip = document.createElement('div');
     tooltip.className = 'gf-tooltip';
 
-    shadow.append(style, tooltip, btn);
+    const preview = document.createElement('div');
+    preview.className = 'gf-preview';
+    preview.innerHTML = `
+      <div class="gf-preview-header">Suggested corrections</div>
+      <div class="gf-preview-diff"></div>
+      <div class="gf-preview-actions">
+        <button class="gf-reject">Reject</button>
+        <button class="gf-accept">Accept</button>
+      </div>`;
+    const diffContainer = preview.querySelector('.gf-preview-diff');
+    const acceptBtn = preview.querySelector('.gf-accept');
+    const rejectBtn = preview.querySelector('.gf-reject');
+
+    shadow.append(style, tooltip, preview, btn);
     document.body.appendChild(host);
     positionHost(host, target);
 
@@ -189,13 +375,55 @@
     window.addEventListener('scroll', reposition, { passive: true });
     window.addEventListener('resize', reposition, { passive: true });
 
+    let pendingCorrection = null;
+
+    function dismissPreview() {
+      preview.classList.remove('visible');
+      pendingCorrection = null;
+    }
+
+    acceptBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!pendingCorrection) return;
+
+      const { selection, corrected } = pendingCorrection;
+      if (selection) {
+        replaceSelection(target, selection, corrected);
+      } else {
+        setText(target, corrected);
+      }
+
+      dismissPreview();
+      btn.classList.add('success');
+      btn.innerHTML = ICON_SVG;
+      showTooltip(tooltip, selection ? 'Selection fixed!' : 'Text fixed!');
+      setTimeout(() => btn.classList.remove('success'), 2000);
+    });
+
+    rejectBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dismissPreview();
+      btn.innerHTML = ICON_SVG;
+      showTooltip(tooltip, 'Correction dismissed');
+    });
+
     btn.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
 
       if (btn.classList.contains('loading')) return;
 
-      const text = getText(target);
+      if (preview.classList.contains('visible')) {
+        dismissPreview();
+        btn.innerHTML = ICON_SVG;
+        return;
+      }
+
+      const selection = getSelection(target);
+      const text = selection ? selection.text : getText(target);
+
       if (!text || !text.trim()) {
         showTooltip(tooltip, 'Nothing to fix');
         return;
@@ -217,12 +445,22 @@
           return;
         }
 
-        setText(target, response.corrected);
+        if (response.corrected.trim() === text.trim()) {
+          btn.classList.remove('loading');
+          btn.classList.add('success');
+          btn.innerHTML = ICON_SVG;
+          showTooltip(tooltip, 'No changes needed');
+          setTimeout(() => btn.classList.remove('success'), 2000);
+          return;
+        }
+
+        const diff = computeWordDiff(text, response.corrected);
+        diffContainer.innerHTML = renderDiffHtml(diff);
+        pendingCorrection = { selection, corrected: response.corrected };
+
         btn.classList.remove('loading');
-        btn.classList.add('success');
         btn.innerHTML = ICON_SVG;
-        showTooltip(tooltip, 'Grammar fixed!');
-        setTimeout(() => btn.classList.remove('success'), 2000);
+        preview.classList.add('visible');
       } catch (err) {
         btn.classList.remove('loading');
         btn.classList.add('error');
@@ -255,17 +493,25 @@
     });
   }
 
-  scanAndAttach();
+  async function init() {
+    const result = await chrome.storage.local.get(DISABLED_SITES_KEY);
+    const disabledSites = result[DISABLED_SITES_KEY] || [];
+    if (disabledSites.includes(window.location.hostname)) return;
 
-  const observer = new MutationObserver((mutations) => {
-    for (const mutation of mutations) {
-      for (const node of mutation.addedNodes) {
-        if (node.nodeType !== Node.ELEMENT_NODE) continue;
-        if (shouldAttachTarget(node)) attachIcon(node);
-        scanAndAttach(node);
+    scanAndAttach();
+
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType !== Node.ELEMENT_NODE) continue;
+          if (shouldAttachTarget(node)) attachIcon(node);
+          scanAndAttach(node);
+        }
       }
-    }
-  });
+    });
 
-  observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
+  init();
 })();
