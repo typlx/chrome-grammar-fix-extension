@@ -1,7 +1,17 @@
+default:
+  tags:
+    - kuber
+
 stages:
   - quality
   - test
+  - security
+  - build
   - package
+
+# ---------------------------------------------------------------------------
+# Quality
+# ---------------------------------------------------------------------------
 
 lint:
   stage: quality
@@ -14,6 +24,10 @@ lint:
     - npm ci --include=dev
     - npm run lint
     - npm run format:check
+
+# ---------------------------------------------------------------------------
+# Test
+# ---------------------------------------------------------------------------
 
 test:
   stage: test
@@ -33,24 +47,57 @@ test:
         path: coverage/cobertura-coverage.xml
     when: always
 
+# ---------------------------------------------------------------------------
+# Security — GitLab AutoDevOps scanning templates
+# ---------------------------------------------------------------------------
+
+include:
+  - template: Jobs/SAST.gitlab-ci.yml
+  - template: Jobs/Secret-Detection.gitlab-ci.yml
+  - template: Jobs/Dependency-Scanning.gitlab-ci.yml
+
+sast:
+  stage: security
+
+secret_detection:
+  stage: security
+
+dependency_scanning:
+  stage: security
+
+# ---------------------------------------------------------------------------
+# Build — multi-browser via build.sh
+# ---------------------------------------------------------------------------
+
+build:
+  stage: build
+  image: node:20-alpine
+  needs: [lint, test]
+  before_script:
+    - apk add --no-cache zip bash
+  script:
+    - bash scripts/build.sh
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 7 days
+
+# ---------------------------------------------------------------------------
+# Package — versioned release zips on main / develop / tags
+# ---------------------------------------------------------------------------
+
 package:
   stage: package
   image: alpine:latest
-  needs: [lint, test]
+  needs: [build]
   rules:
-    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_BRANCH == "develop"
   script:
-    - apk add --no-cache zip
-    - |
-      zip -r typlix-extension.zip \
-        manifest.json \
-        background/ \
-        content/ \
-        popup/ \
-        utils/ \
-        icons/ \
-        -x "*.test.js"
+    - ls dist/typlix-chrome.zip dist/typlix-firefox.zip
   artifacts:
     paths:
-      - typlix-extension.zip
-    expire_in: 30 days
+      - dist/typlix-chrome.zip
+      - dist/typlix-firefox.zip
+    expire_in: 90 days

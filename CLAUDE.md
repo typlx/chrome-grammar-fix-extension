@@ -36,4 +36,4 @@ Vitest with jsdom. Chrome APIs are mocked in tests/setup.js (chrome.storage.loca
 
 ## CI
 
-GitHub Actions (.github/workflows/ci.yml) runs lint, test, and package on push/PR to main and develop.
+GitLab CI (.gitlab-ci.yml) is the primary pipeline running on the Varteq K8s cluster (`kuber` runner tag). Stages: quality → test → security (SAST, Secret Detection, Dependency Scanning via GitLab templates) → build → package. GitHub Actions (.github/workflows/ci.yml) mirrors lint/test/package for GitHub-side PRs.
