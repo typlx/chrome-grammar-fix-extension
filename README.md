@@ -1,28 +1,87 @@
-# Chrome Grammar Fix Extension
+# Typlix
 
-AI-powered Chrome grammar checker and writing assistant extension (Manifest V3) for `textarea`, text `input`, and `contenteditable` fields on any website.  
-Click the inline fix button to run grammar and spelling correction through OpenAI-compatible LLM APIs, with secure encrypted token storage and configurable API/model settings.
+**The open-source, privacy-first grammar checker for your browser.**
 
-## Documentation
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/varteq-company/chrome-grammar-fix-extension/actions/workflows/ci.yml/badge.svg)](https://github.com/varteq-company/chrome-grammar-fix-extension/actions/workflows/ci.yml)
 
-- [User Guide](USERGUIDE.md)
-- [Contributing Guide](CONTRIBUTING.md)
+Typlix fixes grammar and spelling in any text field on any website — powered by the LLM of your choice. Your text stays between you and your API provider. No third-party servers, no data harvesting, no accounts required.
 
-## What It Does
+<!-- TODO: add demo GIF here once recorded -->
+<!-- ![Typlix demo](docs/images/typlix-demo.gif) -->
 
-- Injects a bottom-right fix icon into:
-  - `textarea`
-  - `input[type="text" | "search" | "email" | "url"]`
-  - `contenteditable` elements
-- Works across dynamic pages/apps (SPA friendly)
-- Sends text to an OpenAI-compatible API (`/chat/completions`)
-- Replaces original text with corrected text
-- Provides popup settings:
-  - API URL (default `https://api.openai.com/v1`)
-  - model
-  - token
-- Validates settings on save (`GET /models`) and shows detailed errors
-- Stores token encrypted in `chrome.storage.local` (AES-GCM + PBKDF2)
+## Why Typlix?
+
+Most grammar checkers send every keystroke to a proprietary cloud. Typlix takes a different approach:
+
+- **You own your data.** Text is sent only to the LLM provider you configure — no intermediary.
+- **Bring your own model.** Use OpenAI, Anthropic Claude, or any OpenAI-compatible API (local models via Ollama, LM Studio, etc.).
+- **Open source.** MIT licensed. Audit the code, fork it, contribute.
+- **Works everywhere.** Textareas, inputs, contenteditable fields, SPAs, Gmail compose — if you can type in it, Typlix can fix it.
+
+## Typlix vs. Alternatives
+
+| Feature              | Typlix                  | Grammarly          | LanguageTool                       |
+| -------------------- | ----------------------- | ------------------ | ---------------------------------- |
+| Open source          | Yes (MIT)               | No                 | Partially                          |
+| Privacy              | Your API key, your data | Cloud-processed    | Cloud-processed (self-host option) |
+| Bring your own LLM   | Yes                     | No                 | No                                 |
+| Local/offline models | Yes (via Ollama, etc.)  | No                 | Self-hosted server only            |
+| Price                | Free + your API costs   | Free tier / $30/mo | Free tier / $5/mo                  |
+| Chrome extension     | Yes (Manifest V3)       | Yes                | Yes                                |
+| Per-site toggle      | Yes                     | Yes                | Yes                                |
+| Token encryption     | AES-GCM at rest         | Proprietary        | N/A                                |
+
+## Install
+
+<!-- TODO: uncomment when published to Chrome Web Store -->
+<!-- ### Chrome Web Store (recommended) -->
+<!-- [Install Typlix](https://chrome.google.com/webstore/detail/typlix/EXTENSION_ID) from the Chrome Web Store. -->
+
+### From Source
+
+1. Clone the repo and install dependencies:
+
+```bash
+git clone https://github.com/varteq-company/chrome-grammar-fix-extension.git
+cd chrome-grammar-fix-extension
+npm install --include=dev
+```
+
+2. Load in Chrome:
+   - Navigate to `chrome://extensions`
+   - Enable **Developer mode**
+   - Click **Load unpacked** and select this project folder
+
+3. Configure:
+   - Click the Typlix icon in the toolbar
+   - Select your LLM provider (OpenAI-compatible or Anthropic Claude)
+   - Enter your API URL, model, and token
+   - Click **Save Settings**
+
+## Usage
+
+1. Focus any text field on any page.
+2. Click the fix icon in the field's bottom-right corner.
+3. Wait for the correction (a spinner shows progress).
+4. Done — your text is replaced with the corrected version.
+
+Typlix works with `textarea`, `input[type="text" | "search" | "email" | "url"]`, and `contenteditable` elements. It handles dynamic/SPA pages automatically.
+
+## Supported Providers
+
+| Provider              | Endpoints Used                          |
+| --------------------- | --------------------------------------- |
+| **OpenAI-compatible** | `GET /models`, `POST /chat/completions` |
+| **Anthropic Claude**  | Native Anthropic Messages API           |
+
+Any API that implements the OpenAI chat completions interface works — including local model servers like Ollama, LM Studio, and vLLM.
+
+## Security
+
+- API tokens are **encrypted at rest** (AES-GCM with PBKDF2 key derivation) in `chrome.storage.local`.
+- Tokens are only used in the background service worker — never exposed to content scripts or page context.
+- No telemetry, no analytics, no phone-home behavior.
 
 ## Project Structure
 
@@ -30,111 +89,32 @@ Click the inline fix button to run grammar and spelling correction through OpenA
 manifest.json
 background/
   service-worker.js
+  providers/
+    anthropic-provider.js
+    openai-provider.js
+    provider-registry.js
 content/
-  content.js
+  content.js          # injected into pages (IIFE, shadow DOM)
+  content-core.js     # testable pure functions
   content.css
 popup/
-  popup.html
-  popup.css
-  popup.js
+  popup.html / popup.css / popup.js
 utils/
-  crypto.js
-  storage.js
+  crypto.js           # AES-GCM token encryption
+  storage.js          # Chrome storage wrapper
 icons/
-  icon16.png
-  icon48.png
-  icon128.png
 ```
-
-## Setup (Local Development)
-
-1. Clone the repo:
-
-```bash
-git clone https://github.com/varteq-company/chrome-grammar-fix-extension.git
-cd chrome_fixgrammarextension
-```
-
-2. Open Chrome extensions page:
-   - Navigate to `chrome://extensions`
-   - Enable **Developer mode**
-   - Click **Load unpacked**
-   - Select this project folder
-
-3. Configure the extension:
-   - Click extension icon in toolbar
-   - Set API URL, model, and token
-   - Click **Save Settings**
-   - Validation must pass before config is saved
-
-## Usage
-
-1. Focus any supported text field on a page.
-2. Click the fix icon in the field’s bottom-right corner.
-3. Wait for response (spinner is shown).
-4. Text is replaced with corrected content.
-
-## API Compatibility
-
-Expected endpoints (OpenAI-compatible):
-
-- `GET {apiUrl}/models`
-- `POST {apiUrl}/chat/completions`
-
-If your provider uses a different schema/path, validation or correction may fail until adapter logic is added.
-
-## Security Notes
-
-- Token is encrypted before writing to `chrome.storage.local`.
-- Token is only used in the service worker (not in page context).
-- This improves local-at-rest secrecy but is not equivalent to hardware-backed secret storage.
 
 ## Contributing
 
-Contributions are welcome. For first-time contributors, start with docs/UI improvements or provider compatibility fixes.
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, code quality tools (ESLint, Prettier, Vitest), and workflow.
 
-### Branch and commit flow
+## Documentation
 
-1. Create feature branch:
-
-```bash
-git checkout -b feat/short-description
-```
-
-2. Make your changes.
-
-3. Load/reload unpacked extension in Chrome and test manually:
-   - save valid/invalid config
-   - verify detailed validation errors
-   - verify grammar fix works on textarea + contenteditable + dynamic page elements
-
-4. Commit with clear message:
-
-```bash
-git add .
-git commit -m "feat: add ..."
-```
-
-5. Push and open Pull Request:
-
-```bash
-git push -u github feat/short-description
-```
-
-### Contribution guidelines
-
-- Keep Manifest V3-compatible code.
-- Do not expose tokens to content scripts or page JS.
-- Keep provider error handling explicit and user-readable.
-- Preserve behavior for dynamic pages (MutationObserver/ResizeObserver flows).
-
-## Roadmap
-
-- Provider adapters for non-OpenAI APIs
-- Per-site enable/disable toggle
-- Better UI states in popup (save button loading state, inline field errors)
-- Optional selection-only grammar fix
+- [User Guide](USERGUIDE.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [Release Notes](RELEASE_NOTES.md)
 
 ## License
 
-Distributed under the MIT License. See `LICENSE` for details.
+MIT. See [LICENSE](LICENSE) for details.

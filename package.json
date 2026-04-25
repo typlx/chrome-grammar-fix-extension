@@ -1,5 +1,5 @@
 {
-  "name": "grammar-fix-extension",
+  "name": "typlix-extension",
   "version": "1.0.1",
   "private": true,
   "type": "module",
@@ -11,7 +11,10 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "validate": "npm run lint && npm run format:check && npm run test"
+    "validate": "npm run lint && npm run format:check && npm run test",
+    "build": "bash scripts/build.sh",
+    "build:chrome": "bash scripts/build.sh && echo 'Chrome build: dist/chrome/'",
+    "build:firefox": "bash scripts/build.sh && echo 'Firefox build: dist/firefox/'"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

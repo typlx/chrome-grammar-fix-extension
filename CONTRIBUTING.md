@@ -1,6 +1,6 @@
 # Contributing Guide
 
-Thanks for contributing to Chrome Grammar Fix Extension.
+Thanks for contributing to Typlix.
 
 ## Development Setup
 
@@ -76,7 +76,7 @@ npm run validate
 
 4. Test manually in Chrome:
    - popup save validation
-   - grammar fix on textarea/contenteditable/input
+   - Typlix fix on textarea/contenteditable/input
    - dynamic page behavior (elements added after load)
 
 5. Commit with a clear message:
