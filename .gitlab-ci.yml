@@ -1,0 +1,56 @@
+stages:
+  - quality
+  - test
+  - package
+
+lint:
+  stage: quality
+  image: node:20-alpine
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+  script:
+    - npm ci --include=dev
+    - npm run lint
+    - npm run format:check
+
+test:
+  stage: test
+  image: node:20-alpine
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+  script:
+    - npm ci --include=dev
+    - npm run test:coverage
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    when: always
+
+package:
+  stage: package
+  image: alpine:latest
+  needs: [lint, test]
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"
+  script:
+    - apk add --no-cache zip
+    - |
+      zip -r typlix-extension.zip \
+        manifest.json \
+        background/ \
+        content/ \
+        popup/ \
+        utils/ \
+        icons/ \
+        -x "*.test.js"
+  artifacts:
+    paths:
+      - typlix-extension.zip
+    expire_in: 30 days
