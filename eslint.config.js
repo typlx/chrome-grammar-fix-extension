@@ -30,7 +30,7 @@ export default [
   },
 
   {
-    files: ['vitest.config.js', 'eslint.config.js'],
+    files: ['vitest.config.js', 'eslint.config.js', 'scripts/**/*.mjs'],
     languageOptions: {
       globals: globals.node,
     },
