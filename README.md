@@ -3,7 +3,7 @@
 **The open-source, privacy-first grammar checker for your browser.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![CI](https://gitlab.varteq.com/typlix/chrome-grammar-fix-extension/badges/main/pipeline.svg)](https://gitlab.varteq.com/typlix/chrome-grammar-fix-extension/-/pipelines)
+[![CI](https://github.com/typlx/chrome-grammar-fix-extension/actions/workflows/ci.yml/badge.svg)](https://github.com/typlx/chrome-grammar-fix-extension/actions/workflows/ci.yml)
 
 Typlx fixes grammar and spelling in any text field on any website — powered by the LLM of your choice. Your text stays between you and your API provider. No third-party servers, no data harvesting, no accounts required.
 
@@ -42,7 +42,7 @@ Most grammar checkers send every keystroke to a proprietary cloud. Typlx takes a
 1. Clone the repo and install dependencies:
 
 ```bash
-git clone https://gitlab.varteq.com/typlix/chrome-grammar-fix-extension.git
+git clone https://github.com/typlx/chrome-grammar-fix-extension.git
 cd chrome-grammar-fix-extension
 npm install --include=dev
 ```
