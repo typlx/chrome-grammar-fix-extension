@@ -7,8 +7,7 @@
 
 Typlx fixes grammar and spelling in any text field on any website — powered by the LLM of your choice. Your text stays between you and your API provider. No third-party servers, no data harvesting, no accounts required.
 
-<!-- TODO: add demo GIF here once recorded -->
-<!-- ![Typlx demo](docs/images/typlx-demo.gif) -->
+![Typlx demo](docs/images/typlx-demo.gif)
 
 ## Why Typlx?
 

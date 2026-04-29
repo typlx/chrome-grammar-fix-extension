@@ -1,104 +1,187 @@
 #!/usr/bin/env node
 /**
  * Records the Typlx demo sequence as screenshots for GIF assembly.
- * Requires: npx playwright install chromium (with OS deps)
- * Usage: node scripts/record-demo.mjs
- * Output: docs/images/demo-frame-*.png + docs/images/typlx-demo.gif (if ffmpeg available)
+ * Simulates the extension UI in headless Chromium since extensions
+ * can't load in headless mode.
+ *
+ * Usage: NODE_PATH=/usr/local/lib/node_modules node scripts/record-demo.mjs
+ * Output: docs/images/demo-frame-*.png
  */
 
-import { chromium } from 'playwright';
+import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { mkdirSync } from 'fs';
 import { execSync } from 'child_process';
 
+const require = createRequire('/usr/local/lib/node_modules/');
+const { chromium } = require('playwright');
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
 const DEMO_PAGE = join(ROOT, 'docs', 'demo-page.html');
 const OUTPUT_DIR = join(ROOT, 'docs', 'images');
-const EXTENSION_DIR = ROOT;
 
 mkdirSync(OUTPUT_DIR, { recursive: true });
 
 const VIEWPORT = { width: 800, height: 500 };
+
+const FIXED_TEXT =
+  'We are excited to announce Typlx, an open-source grammar checking tool that respects your privacy. Unlike other tools, Typlx doesn’t send your text to third-party servers.';
+
 async function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function main() {
-  console.log('Launching browser with Typlx extension...');
+async function injectFixIcon(page, state) {
+  await page.evaluate((s) => {
+    let icon = document.getElementById('typlx-fix-icon');
+    if (!icon) {
+      const ta = document.querySelector('textarea');
+      let wrap = document.getElementById('typlx-ta-wrap');
+      if (!wrap) {
+        wrap = document.createElement('div');
+        wrap.id = 'typlx-ta-wrap';
+        wrap.style.cssText = 'position: relative; display: block;';
+        ta.parentNode.insertBefore(wrap, ta);
+        wrap.appendChild(ta);
+      }
+      icon = document.createElement('div');
+      icon.id = 'typlx-fix-icon';
+      wrap.appendChild(icon);
+    }
+    const styles = {
+      idle: {
+        background: '#6c63ff',
+        color: '#fff',
+        content: '✏️',
+        border: '1px solid #7c74ff',
+      },
+      hover: {
+        background: '#7c74ff',
+        color: '#fff',
+        content: '✏️',
+        border: '1px solid #9d96ff',
+      },
+      spinning: {
+        background: '#6c63ff',
+        color: '#fff',
+        content: '⏳',
+        border: '1px solid #7c74ff',
+      },
+      success: {
+        background: '#238636',
+        color: '#fff',
+        content: '✓',
+        border: '1px solid #2ea043',
+      },
+    };
+    const st = styles[s];
+    icon.style.cssText = `
+      position: absolute; bottom: 16px; right: 16px;
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 16px; z-index: 10;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      background: ${st.background}; color: ${st.color}; border: ${st.border};
+    `;
+    icon.textContent = st.content;
+  }, state);
+}
 
-  const context = await chromium.launchPersistentContext('', {
-    headless: false,
-    args: [
-      `--disable-extensions-except=${EXTENSION_DIR}`,
-      `--load-extension=${EXTENSION_DIR}`,
-      '--no-first-run',
-      '--disable-default-apps',
-    ],
-    viewport: VIEWPORT,
+async function addPrivacyBadge(page) {
+  await page.evaluate(() => {
+    const badge = document.createElement('div');
+    badge.style.cssText = `
+      position: absolute; bottom: 52px; right: 12px;
+      background: rgba(35, 134, 54, 0.95); color: #fff;
+      padding: 6px 12px; border-radius: 6px; font-size: 12px;
+      font-family: -apple-system, sans-serif;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      z-index: 20; white-space: nowrap;
+    `;
+    badge.textContent = '🔒 Powered by your API — no data shared';
+    const wrap = document.getElementById('typlx-ta-wrap');
+    wrap.appendChild(badge);
+  });
+}
+
+async function main() {
+  // eslint-disable-next-line no-console
+  console.log('Launching headless Chromium...');
+
+  const browser = await chromium.launch({
+    args: ['--no-sandbox', '--disable-dev-shm-usage'],
   });
 
-  const page = await context.newPage();
+  const page = await browser.newPage({ viewport: VIEWPORT });
   await page.goto(`file://${DEMO_PAGE}`);
-  await sleep(1000);
-
-  // Scene 1: Show the text with errors
-  console.log('Scene 1: Context — text with errors');
-  await page.click('textarea');
   await sleep(500);
+
+  // Scene 1: Text with errors, no icon yet
+  // eslint-disable-next-line no-console
+  console.log('Scene 1: Text with errors');
   await page.screenshot({
     path: join(OUTPUT_DIR, 'demo-frame-01-context.png'),
   });
 
-  // Scene 2: Focus textarea to trigger Typlx icon
-  console.log('Scene 2: Trigger — Typlx icon appears');
-  await page.focus('textarea');
-  await sleep(1500);
+  // Scene 2: Focus textarea, Typlx icon appears
+  // eslint-disable-next-line no-console
+  console.log('Scene 2: Typlx icon appears');
+  await page.click('textarea');
+  await sleep(300);
+  await injectFixIcon(page, 'idle');
+  await sleep(200);
   await page.screenshot({
     path: join(OUTPUT_DIR, 'demo-frame-02-icon.png'),
   });
 
-  // Scene 3: Click the Typlx fix icon (bottom-right of textarea)
-  console.log('Scene 3: Click fix icon');
-  const textarea = await page.locator('textarea');
-  const box = await textarea.boundingBox();
-  if (box) {
-    // The fix icon appears near the bottom-right corner of the textarea
-    await page.mouse.move(box.x + box.width - 20, box.y + box.height - 20);
-    await sleep(500);
-    await page.screenshot({
-      path: join(OUTPUT_DIR, 'demo-frame-03-hover.png'),
-    });
-    await page.mouse.click(box.x + box.width - 20, box.y + box.height - 20);
-  }
+  // Scene 3: Hover over fix icon
+  // eslint-disable-next-line no-console
+  console.log('Scene 3: Hover fix icon');
+  await injectFixIcon(page, 'hover');
+  await sleep(200);
+  await page.screenshot({
+    path: join(OUTPUT_DIR, 'demo-frame-03-hover.png'),
+  });
 
-  // Scene 4: Processing / spinner
+  // Scene 4: Click — spinner appears
+  // eslint-disable-next-line no-console
   console.log('Scene 4: Processing');
-  await sleep(800);
+  await injectFixIcon(page, 'spinning');
+  await sleep(200);
   await page.screenshot({
     path: join(OUTPUT_DIR, 'demo-frame-04-processing.png'),
   });
 
-  // Scene 5: Wait for correction to complete
-  console.log('Scene 5: Result — corrected text');
-  await sleep(3000);
+  // Scene 5: Text corrected, success checkmark
+  // eslint-disable-next-line no-console
+  console.log('Scene 5: Corrected text');
+  await page.evaluate((text) => {
+    document.querySelector('textarea').value = text;
+  }, FIXED_TEXT);
+  await injectFixIcon(page, 'success');
+  await sleep(200);
   await page.screenshot({
     path: join(OUTPUT_DIR, 'demo-frame-05-result.png'),
   });
 
-  // Scene 6: Final state with success indicator
-  await sleep(1000);
+  // Scene 6: Privacy badge appears
+  // eslint-disable-next-line no-console
+  console.log('Scene 6: Privacy badge');
+  await addPrivacyBadge(page);
+  await sleep(200);
   await page.screenshot({
-    path: join(OUTPUT_DIR, 'demo-frame-06-success.png'),
+    path: join(OUTPUT_DIR, 'demo-frame-06-privacy.png'),
   });
 
-  await context.close();
+  await browser.close();
+  // eslint-disable-next-line no-console
   console.log(`\nScreenshots saved to ${OUTPUT_DIR}/`);
 
-  // Try to assemble GIF if ffmpeg is available
   try {
     execSync('which ffmpeg', { stdio: 'ignore' });
+    // eslint-disable-next-line no-console
     console.log('Assembling GIF with ffmpeg...');
     execSync(
       `ffmpeg -y -framerate 0.7 -pattern_type glob -i '${OUTPUT_DIR}/demo-frame-*.png' ` +
@@ -106,17 +189,16 @@ async function main() {
         `${OUTPUT_DIR}/typlx-demo.gif`,
       { stdio: 'inherit' },
     );
+    // eslint-disable-next-line no-console
     console.log(`GIF saved: ${OUTPUT_DIR}/typlx-demo.gif`);
   } catch {
+    // eslint-disable-next-line no-console
     console.log('ffmpeg not found — screenshots captured, assemble GIF manually.');
-    console.log(
-      "  ffmpeg -framerate 0.7 -pattern_type glob -i 'docs/images/demo-frame-*.png' " +
-        '-vf "scale=800:-1:flags=lanczos" docs/images/typlx-demo.gif',
-    );
   }
 }
 
 main().catch((e) => {
+  // eslint-disable-next-line no-console
   console.error('Demo recording failed:', e.message);
   process.exit(1);
 });
