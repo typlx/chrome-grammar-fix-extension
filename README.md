@@ -113,6 +113,7 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, code qu
 - [User Guide](USERGUIDE.md)
 - [Contributing Guide](CONTRIBUTING.md)
 - [Release Notes](RELEASE_NOTES.md)
+- [Privacy Policy](PRIVACY_POLICY.md)
 
 ## License
 
