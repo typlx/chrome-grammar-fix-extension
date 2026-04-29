@@ -1,0 +1,34 @@
+name: Feature Request
+description: Suggest an improvement or new feature for Typlx
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      placeholder: What problem does this solve, or what workflow would it improve?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      placeholder: Describe how you'd like this to work.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      placeholder: Any workarounds or other approaches you've thought about?
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Grammar/spelling correction
+        - UI/UX
+        - Provider support
+        - Privacy/security
+        - Performance
+        - Other
