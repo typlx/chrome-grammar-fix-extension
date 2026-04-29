@@ -36,4 +36,4 @@ Vitest with jsdom. Chrome APIs are mocked in tests/setup.js (chrome.storage.loca
 
 ## CI
 
-GitHub Actions (.github/workflows/ci.yml) runs lint, test, and package on push/PR to main and develop.
+GitLab CI (.gitlab-ci.yml) runs lint, test (with coverage), and package on push to main and develop. GitHub Actions config (.github/workflows/ci.yml) also exists as a mirror.
