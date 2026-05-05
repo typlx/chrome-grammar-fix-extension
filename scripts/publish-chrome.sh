@@ -9,10 +9,7 @@ if [ ! -f "$ZIP" ]; then
   bash "$ROOT/scripts/build.sh"
 fi
 
-if [ -z "${CHROME_WEBSTORE_EXTENSION_ID:-}" ]; then
-  echo "Error: CHROME_WEBSTORE_EXTENSION_ID is not set" >&2
-  exit 1
-fi
+CHROME_WEBSTORE_EXTENSION_ID="${CHROME_WEBSTORE_EXTENSION_ID:-koffcnafpmfkoafknhkmcgcpdgmpgfop}"
 
 for var in CHROME_WEBSTORE_CLIENT_ID CHROME_WEBSTORE_CLIENT_SECRET CHROME_WEBSTORE_REFRESH_TOKEN; do
   if [ -z "${!var:-}" ]; then
