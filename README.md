@@ -33,9 +33,9 @@ Most grammar checkers send every keystroke to a proprietary cloud. Typlx takes a
 
 ## Install
 
-<!-- TODO: uncomment when published to Chrome Web Store -->
-<!-- ### Chrome Web Store (recommended) -->
-<!-- [Install Typlx](https://chrome.google.com/webstore/detail/typlx/EXTENSION_ID) from the Chrome Web Store. -->
+### Chrome Web Store (recommended)
+
+[Install Typlx](https://chromewebstore.google.com/detail/typlx/koffcnafpmfkoafknhkmcgcpdgmpgfop) from the Chrome Web Store.
 
 ### From Source
 
