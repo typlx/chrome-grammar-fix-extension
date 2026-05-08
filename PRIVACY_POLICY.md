@@ -6,12 +6,12 @@ Typlx is an open-source browser extension that fixes grammar and spelling using 
 
 ## Data the extension processes
 
-| Data | Where it goes | Why |
-|---|---|---|
-| Text you choose to check | Sent to the LLM API endpoint **you** configure (e.g. OpenAI, Anthropic, a local model) | To generate grammar corrections |
-| API token / key | Encrypted (AES-GCM) and stored locally in `chrome.storage.local` on your device | To authenticate with your chosen provider |
-| Per-site disable list | Stored locally in `chrome.storage.local` | To remember which sites you disabled Typlx on |
-| Usage statistics (opt-in) | Stored locally in `chrome.storage.local` — never transmitted | To show you personal fix counts if you opt in |
+| Data                      | Where it goes                                                                          | Why                                           |
+| ------------------------- | -------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Text you choose to check  | Sent to the LLM API endpoint **you** configure (e.g. OpenAI, Anthropic, a local model) | To generate grammar corrections               |
+| API token / key           | Encrypted (AES-GCM) and stored locally in `chrome.storage.local` on your device        | To authenticate with your chosen provider     |
+| Per-site disable list     | Stored locally in `chrome.storage.local`                                               | To remember which sites you disabled Typlx on |
+| Usage statistics (opt-in) | Stored locally in `chrome.storage.local` — never transmitted                           | To show you personal fix counts if you opt in |
 
 ## Data the extension does NOT collect
 
@@ -32,12 +32,12 @@ Your API token is encrypted at rest using AES-GCM with a PBKDF2-derived key. It 
 
 ## Permissions
 
-| Permission | Reason |
-|---|---|
-| `storage` | Save your settings and encrypted API token locally |
-| `activeTab` | Inject the grammar-fix UI into the currently active tab |
-| `tabs` | Detect the current site hostname for the per-site toggle |
-| `host_permissions: <all_urls>` | Allow grammar checking on any website you visit |
+| Permission                     | Reason                                                   |
+| ------------------------------ | -------------------------------------------------------- |
+| `storage`                      | Save your settings and encrypted API token locally       |
+| `activeTab`                    | Inject the grammar-fix UI into the currently active tab  |
+| `tabs`                         | Detect the current site hostname for the per-site toggle |
+| `host_permissions: <all_urls>` | Allow grammar checking on any website you visit          |
 
 ## Children's privacy
 
