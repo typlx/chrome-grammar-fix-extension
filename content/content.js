@@ -2,7 +2,10 @@
   const PROCESSED = new WeakSet();
   const ICON_HOST_ATTR = 'data-gf-host';
   const DISABLED_SITES_KEY = 'grammarfix_disabled_sites';
-  const isGmail = window.location.hostname === 'mail.google.com';
+  const hostname = window.location.hostname;
+  const isGmail = hostname === 'mail.google.com';
+  const isTwitter = hostname === 'twitter.com' || hostname === 'x.com';
+  const isGoogleDocs = hostname === 'docs.google.com';
 
   const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 20h9"/>
@@ -178,13 +181,30 @@
     return false;
   }
 
+  function isTooSmall(el) {
+    const rect = el.getBoundingClientRect();
+    if (rect.width < 100 || rect.height < 30) return true;
+    const style = window.getComputedStyle(el);
+    return style.display === 'none' || style.visibility === 'hidden';
+  }
+
+  function isTwitterComposeBox(el) {
+    if (!isTwitter) return false;
+    if (!el.isContentEditable) return false;
+    if (el.getAttribute('role') !== 'textbox') return false;
+    return !isTooSmall(el);
+  }
+
   function shouldAttachTarget(el) {
     if (!isEditable(el)) return false;
     if (hasEditableAncestor(el)) return false;
 
-    if (isGmail) {
-      return isGmailComposeBody(el);
-    }
+    if (isGoogleDocs) return false;
+
+    if (isGmail) return isGmailComposeBody(el);
+    if (isTwitter) return isTwitterComposeBox(el);
+
+    if (isTooSmall(el)) return false;
 
     return true;
   }
@@ -399,6 +419,7 @@
       btn.innerHTML = ICON_SVG;
       showTooltip(tooltip, selection ? 'Selection fixed!' : 'Text fixed!');
       setTimeout(() => btn.classList.remove('success'), 2000);
+      chrome.runtime.sendMessage({ type: 'recordAccepted' }).catch(() => {});
     });
 
     rejectBtn.addEventListener('click', (e) => {
@@ -407,6 +428,7 @@
       dismissPreview();
       btn.innerHTML = ICON_SVG;
       showTooltip(tooltip, 'Correction dismissed');
+      chrome.runtime.sendMessage({ type: 'recordRejected' }).catch(() => {});
     });
 
     btn.addEventListener('click', async (e) => {
@@ -440,7 +462,10 @@
           btn.classList.remove('loading');
           btn.classList.add('error');
           btn.innerHTML = ICON_SVG;
-          showTooltip(tooltip, response.error);
+          const errorMsg = response.error.includes('not configured')
+            ? 'API key needed — click Typlx icon in toolbar'
+            : response.error;
+          showTooltip(tooltip, errorMsg, 7000);
           setTimeout(() => btn.classList.remove('error'), 3000);
           return;
         }
@@ -461,6 +486,9 @@
         btn.classList.remove('loading');
         btn.innerHTML = ICON_SVG;
         preview.classList.add('visible');
+        chrome.runtime
+          .sendMessage({ type: 'recordCorrection', charCount: text.length })
+          .catch(() => {});
       } catch (err) {
         btn.classList.remove('loading');
         btn.classList.add('error');
@@ -484,9 +512,15 @@
   }
 
   function scanAndAttach(root = document) {
-    const selector = isGmail
-      ? '[contenteditable="true"][role="textbox"]'
-      : 'textarea, [contenteditable="true"], [contenteditable=""], input[type="text"], input[type="search"], input[type="email"], input[type="url"]';
+    if (isGoogleDocs) return;
+
+    let selector;
+    if (isGmail || isTwitter) {
+      selector = '[contenteditable="true"][role="textbox"]';
+    } else {
+      selector =
+        'textarea, [contenteditable="true"], [contenteditable=""], input[type="text"], input[type="search"], input[type="email"], input[type="url"]';
+    }
     const targets = root.querySelectorAll(selector);
     targets.forEach((target) => {
       if (shouldAttachTarget(target)) attachIcon(target);

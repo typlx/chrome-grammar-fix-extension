@@ -35,6 +35,9 @@ const toggleCurrentSiteBtn = document.getElementById('toggle-current-site');
 const currentSiteLabel = document.getElementById('current-site-label');
 const disabledSitesList = document.getElementById('disabled-sites-list');
 const noDisabledSites = document.getElementById('no-disabled-sites');
+const statsPanel = document.getElementById('stats-panel');
+const setupHint = document.getElementById('setup-hint');
+const toggleAnalyticsBtn = document.getElementById('toggle-analytics');
 
 let currentHostname = null;
 let toastTimer;
@@ -147,8 +150,10 @@ tabs.forEach((tab) => {
     const target = tab.dataset.tab;
     settingsPanel.classList.toggle('hidden', target !== 'settings');
     sitesPanel.classList.toggle('hidden', target !== 'sites');
+    statsPanel.classList.toggle('hidden', target !== 'stats');
 
     if (target === 'sites') loadSitesPanel();
+    if (target === 'stats') loadStatsPanel();
   });
 });
 
@@ -234,4 +239,54 @@ toggleCurrentSiteBtn.addEventListener('click', async () => {
   renderDisabledSites(updated);
 });
 
+async function loadStatsPanel() {
+  try {
+    const { stats } = await chrome.runtime.sendMessage({ type: 'getStats' });
+    if (stats) {
+      document.getElementById('stat-corrections').textContent = stats.totalCorrections;
+      document.getElementById('stat-accepted').textContent = stats.totalAccepted;
+      document.getElementById('stat-rejected').textContent = stats.totalRejected;
+      document.getElementById('stat-characters').textContent = formatNumber(
+        stats.charactersProcessed,
+      );
+      const lastUsedEl = document.getElementById('stat-last-used');
+      if (stats.lastUsed) {
+        const date = new Date(stats.lastUsed);
+        lastUsedEl.textContent = `Last used: ${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      } else {
+        lastUsedEl.textContent = 'No corrections yet';
+      }
+    }
+
+    const { enabled } = await chrome.runtime.sendMessage({ type: 'getAnalyticsEnabled' });
+    toggleAnalyticsBtn.classList.toggle('off', !enabled);
+  } catch {
+    /* stats unavailable */
+  }
+}
+
+function formatNumber(n) {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+  return String(n);
+}
+
+toggleAnalyticsBtn.addEventListener('click', async () => {
+  const isOff = toggleAnalyticsBtn.classList.contains('off');
+  await chrome.runtime.sendMessage({ type: 'setAnalyticsEnabled', enabled: isOff });
+  toggleAnalyticsBtn.classList.toggle('off', !isOff);
+});
+
+async function checkFirstRun() {
+  try {
+    const config = await getConfig();
+    if (!config.token) {
+      setupHint.classList.remove('hidden');
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 loadSettings();
+checkFirstRun();
