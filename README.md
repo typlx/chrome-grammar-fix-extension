@@ -1,62 +1,40 @@
-# Typlx
+# Typlix — AI Grammar Checker for Chrome
 
-**The open-source, privacy-first grammar checker for your browser.**
+> AI-powered grammar and writing corrections for every text field in your browser. **Your text never passes through Typlix servers.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/koffcnafpmfkoafknhkmcgcpdgmpgfop?label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/koffcnafpmfkoafknhkmcgcpdgmpgfop)
+[![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/koffcnafpmfkoafknhkmcgcpdgmpgfop)](https://chromewebstore.google.com/detail/koffcnafpmfkoafknhkmcgcpdgmpgfop)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/typlx/chrome-grammar-fix-extension/actions/workflows/ci.yml/badge.svg)](https://github.com/typlx/chrome-grammar-fix-extension/actions/workflows/ci.yml)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-Typlx fixes grammar and spelling in any text field on any website — powered by the LLM of your choice. Your text stays between you and your API provider. No third-party servers, no data harvesting, no accounts required.
+Typlix connects your browser directly to the LLM of your choice — OpenAI, Anthropic Claude, Google Gemini, or a fully local model via Ollama. You own the API key. You choose the model. Typlix is just the interface.
 
 ![Typlx demo](docs/images/typlx-demo.gif)
 
-## Why Typlx?
-
-Most grammar checkers send every keystroke to a proprietary cloud. Typlx takes a different approach:
-
-- **You own your data.** Text is sent only to the LLM provider you configure — no intermediary.
-- **Bring your own model.** Use OpenAI, Anthropic Claude, or any OpenAI-compatible API (local models via Ollama, LM Studio, etc.).
-- **Open source.** MIT licensed. Audit the code, fork it, contribute.
-- **Works everywhere.** Textareas, inputs, contenteditable fields, SPAs, Gmail compose — if you can type in it, Typlx can fix it.
-
-## Typlx vs. Alternatives
-
-| Feature              | Typlx                   | Grammarly          | LanguageTool                       |
-| -------------------- | ----------------------- | ------------------ | ---------------------------------- |
-| Open source          | Yes (MIT)               | No                 | Partially                          |
-| Privacy              | Your API key, your data | Cloud-processed    | Cloud-processed (self-host option) |
-| Bring your own LLM   | Yes                     | No                 | No                                 |
-| Local/offline models | Yes (via Ollama, etc.)  | No                 | Self-hosted server only            |
-| Price                | Free + your API costs   | Free tier / $30/mo | Free tier / $5/mo                  |
-| Chrome extension     | Yes (Manifest V3)       | Yes                | Yes                                |
-| Per-site toggle      | Yes                     | Yes                | Yes                                |
-| Token encryption     | AES-GCM at rest         | Proprietary        | N/A                                |
-
 ## Install
 
-### Chrome Web Store (recommended)
+**[→ Install from Chrome Web Store](https://chromewebstore.google.com/detail/koffcnafpmfkoafknhkmcgcpdgmpgfop)**
 
-[Install Typlx](https://chromewebstore.google.com/detail/typlx/koffcnafpmfkoafknhkmcgcpdgmpgfop) from the Chrome Web Store.
+Or clone and load unpacked for development (see [Contributing](CONTRIBUTING.md)).
 
-### From Source
+## Why Typlix?
 
-1. Clone the repo and install dependencies:
+| | Typlix | Grammarly | LanguageTool |
+|---|---|---|---|
+| Price | Free | $12–30/mo | Free–$6.99/mo |
+| Your text on their servers | ❌ Never | ✅ Always | ✅ Default (self-host for privacy) |
+| Open source | ✅ MIT | ❌ | ✅ Partial |
+| AI-quality corrections | ✅ | ✅ | ❌ |
+| Local model support | ✅ Ollama/LM Studio | ❌ | ❌ |
+| Account required | ❌ | ✅ | ✅ |
 
-```bash
-git clone https://github.com/typlx/chrome-grammar-fix-extension.git
-cd chrome-grammar-fix-extension
-npm install --include=dev
-```
+## Supported Models
 
-2. Load in Chrome:
-   - Navigate to `chrome://extensions`
-   - Enable **Developer mode**
-   - Click **Load unpacked** and select this project folder
-
-3. Configure:
-   - Click the Typlx icon in the toolbar
-   - Select your LLM provider (OpenAI-compatible or Anthropic Claude)
-   - Enter your API URL, model, and token
-   - Click **Save Settings**
+- **OpenAI** — GPT-4o, GPT-4o mini, GPT-3.5
+- **Anthropic** — Claude Haiku, Sonnet, Opus
+- **Google** — Gemini Flash, Gemini Pro
+- **Local** — Any Ollama or LM Studio model (fully offline, no API key)
 
 ## Usage
 
