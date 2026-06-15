@@ -115,6 +115,14 @@ describe('content-core', () => {
     it('returns true for a top-level textarea on a non-Gmail site', () => {
       const el = document.createElement('textarea');
       document.body.appendChild(el);
+      el.getBoundingClientRect = () => ({
+        width: 300,
+        height: 100,
+        top: 0,
+        left: 0,
+        right: 300,
+        bottom: 100,
+      });
       expect(shouldAttachTarget(el)).toBe(true);
       el.remove();
     });

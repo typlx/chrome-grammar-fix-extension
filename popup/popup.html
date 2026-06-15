@@ -27,9 +27,26 @@
       <div class="tabs">
         <button class="tab active" data-tab="settings">Settings</button>
         <button class="tab" data-tab="sites">Sites</button>
+        <button class="tab" data-tab="stats">Stats</button>
       </div>
 
       <div id="settings-panel" class="panel">
+        <div id="setup-hint" class="setup-hint hidden">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+          <span>Enter your API key below to start checking grammar on any website.</span>
+        </div>
+
         <form id="settings-form">
           <div class="field">
             <label for="provider">Provider</label>
@@ -62,6 +79,37 @@
           <ul id="disabled-sites-list" class="site-list"></ul>
           <p id="no-disabled-sites" class="muted">No sites disabled</p>
         </div>
+      </div>
+
+      <div id="stats-panel" class="panel hidden">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-corrections">0</div>
+            <div class="stat-label">Corrections</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-accepted">0</div>
+            <div class="stat-label">Accepted</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-rejected">0</div>
+            <div class="stat-label">Rejected</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-characters">0</div>
+            <div class="stat-label">Characters</div>
+          </div>
+        </div>
+        <div class="stat-last-used" id="stat-last-used"></div>
+        <div class="analytics-toggle">
+          <span>Track usage stats</span>
+          <button id="toggle-analytics" class="toggle-btn" title="Toggle analytics">
+            <span class="toggle-track">
+              <span class="toggle-thumb"></span>
+            </span>
+          </button>
+        </div>
+        <p class="muted">Stats are stored locally and never sent anywhere.</p>
       </div>
 
       <div id="toast" class="toast"></div>

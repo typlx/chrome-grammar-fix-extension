@@ -47,6 +47,14 @@ describe('grammar fix end-to-end flow', () => {
       const textarea = document.createElement('textarea');
       document.body.appendChild(textarea);
       textarea.value = 'The quik brown fox jumpd over the lazzy dog.';
+      textarea.getBoundingClientRect = () => ({
+        width: 400,
+        height: 100,
+        top: 0,
+        left: 0,
+        right: 400,
+        bottom: 100,
+      });
 
       expect(isEditable(textarea)).toBe(true);
       expect(shouldAttachTarget(textarea)).toBe(true);
