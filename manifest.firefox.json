@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Typlx",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Open-source, privacy-first grammar and spelling checker for any text field",
   "browser_specific_settings": {
     "gecko": {

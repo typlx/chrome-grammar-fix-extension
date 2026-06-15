@@ -1,9 +1,13 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { saveConfig, getConfig, hasToken } from '../../utils/storage.js';
-import { handleFixGrammar, validateConfig } from '../../background/service-worker.js';
+import { handleFixGrammar, validateConfig, clearCache } from '../../background/service-worker.js';
 import { getText, setText, isEditable, shouldAttachTarget } from '../../content/content-core.js';
 
 describe('grammar fix end-to-end flow', () => {
+  beforeEach(() => {
+    clearCache();
+  });
+
   describe('user configures API settings, then fixes text in a textarea', () => {
     it('validates config, saves credentials, and corrects text via the API', async () => {
       vi.stubGlobal(
@@ -63,9 +67,10 @@ describe('grammar fix end-to-end flow', () => {
       expect(originalText).toBe('The quik brown fox jumpd over the lazzy dog.');
 
       const result = await handleFixGrammar(originalText);
-      expect(result).toEqual({
-        corrected: 'The quick brown fox jumps over the lazy dog.',
-      });
+      expect(result.corrected).toBe('The quick brown fox jumps over the lazy dog.');
+      expect(result.wordCount).toBe(9);
+      expect(result.elapsedMs).toBeGreaterThanOrEqual(0);
+      expect(result.detectedLanguage).toBe('en');
 
       setText(textarea, result.corrected);
       expect(textarea.value).toBe('The quick brown fox jumps over the lazy dog.');

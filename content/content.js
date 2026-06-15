@@ -98,6 +98,15 @@
       font-size: 12px;
       color: #a0a0b8;
       border-bottom: 1px solid #2a2a3e;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .gf-preview-lang {
+      font-weight: 400;
+      font-size: 11px;
+      color: #6a6a82;
+      text-transform: uppercase;
     }
     .gf-preview-diff {
       padding: 10px 12px;
@@ -211,6 +220,15 @@
 
   function getText(el) {
     if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') return el.value;
+    if (el.isContentEditable) {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+      const parts = [];
+      let node;
+      while ((node = walker.nextNode())) {
+        parts.push(node.textContent);
+      }
+      return parts.join('') || el.innerText;
+    }
     return el.innerText;
   }
 
@@ -279,6 +297,10 @@
     tooltip.textContent = msg;
     tooltip.classList.add('visible');
     setTimeout(() => tooltip.classList.remove('visible'), duration);
+  }
+
+  function countWords(text) {
+    return text.trim().split(/\s+/).filter(Boolean).length;
   }
 
   function computeWordDiff(original, corrected) {
@@ -375,13 +397,17 @@
     const preview = document.createElement('div');
     preview.className = 'gf-preview';
     preview.innerHTML = `
-      <div class="gf-preview-header">Suggested corrections</div>
+      <div class="gf-preview-header">
+        <span>Suggested corrections</span>
+        <span class="gf-preview-lang"></span>
+      </div>
       <div class="gf-preview-diff"></div>
       <div class="gf-preview-actions">
         <button class="gf-reject">Reject</button>
         <button class="gf-accept">Accept</button>
       </div>`;
     const diffContainer = preview.querySelector('.gf-preview-diff');
+    const langBadge = preview.querySelector('.gf-preview-lang');
     const acceptBtn = preview.querySelector('.gf-accept');
     const rejectBtn = preview.querySelector('.gf-reject');
 
@@ -483,11 +509,17 @@
         diffContainer.innerHTML = renderDiffHtml(diff);
         pendingCorrection = { selection, corrected: response.corrected };
 
+        if (response.detectedLanguage && langBadge) {
+          langBadge.textContent = response.detectedLanguage;
+        }
+
         btn.classList.remove('loading');
         btn.innerHTML = ICON_SVG;
         preview.classList.add('visible');
+
+        const wordCount = countWords(text);
         chrome.runtime
-          .sendMessage({ type: 'recordCorrection', charCount: text.length })
+          .sendMessage({ type: 'recordCorrection', charCount: text.length, wordCount })
           .catch(() => {});
       } catch (err) {
         btn.classList.remove('loading');
@@ -511,6 +543,26 @@
     cleanup.observe(document.body, { childList: true, subtree: true });
   }
 
+  let scanTimer = null;
+  const SCAN_DEBOUNCE_MS = 150;
+
+  function scheduleScan(root) {
+    if (scanTimer) return;
+    scanTimer = setTimeout(() => {
+      scanTimer = null;
+      scanAndAttach(root);
+    }, SCAN_DEBOUNCE_MS);
+  }
+
+  function scanShadowRoots(root) {
+    const elements = root.querySelectorAll('*');
+    for (const el of elements) {
+      if (el.shadowRoot) {
+        scanAndAttach(el.shadowRoot);
+      }
+    }
+  }
+
   function scanAndAttach(root = document) {
     if (isGoogleDocs) return;
 
@@ -525,6 +577,8 @@
     targets.forEach((target) => {
       if (shouldAttachTarget(target)) attachIcon(target);
     });
+
+    scanShadowRoots(root);
   }
 
   async function init() {
@@ -532,19 +586,31 @@
     const disabledSites = result[DISABLED_SITES_KEY] || [];
     if (disabledSites.includes(window.location.hostname)) return;
 
-    scanAndAttach();
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(() => scanAndAttach());
+    } else {
+      scanAndAttach();
+    }
 
     const observer = new MutationObserver((mutations) => {
+      let needsScan = false;
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== Node.ELEMENT_NODE) continue;
-          if (shouldAttachTarget(node)) attachIcon(node);
-          scanAndAttach(node);
+          if (shouldAttachTarget(node)) {
+            attachIcon(node);
+          } else {
+            needsScan = true;
+          }
         }
       }
+      if (needsScan) scheduleScan();
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
+
+    window.addEventListener('popstate', () => scheduleScan());
+    window.addEventListener('hashchange', () => scheduleScan());
   }
 
   init();

@@ -75,6 +75,15 @@ export function shouldAttachTarget(el) {
 
 export function getText(el) {
   if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') return el.value;
+  if (el.isContentEditable) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    const parts = [];
+    let node;
+    while ((node = walker.nextNode())) {
+      parts.push(node.textContent);
+    }
+    return parts.join('') || el.innerText;
+  }
   return el.innerText;
 }
 
@@ -154,4 +163,8 @@ export function showTooltip(tooltip, msg, duration = 2500) {
   tooltip.textContent = msg;
   tooltip.classList.add('visible');
   setTimeout(() => tooltip.classList.remove('visible'), duration);
+}
+
+export function countWords(text) {
+  return text.trim().split(/\s+/).filter(Boolean).length;
 }
