@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Typlx",
   "version": "2.1.0",
-  "description": "Open-source, privacy-first grammar and spelling checker for any text field",
+  "description": "Privacy-first, open-source grammar checker. Advanced AI suggestions while your data stays under your control. No tracking.",
   "permissions": ["storage", "activeTab", "tabs"],
   "host_permissions": ["<all_urls>"],
   "background": {
