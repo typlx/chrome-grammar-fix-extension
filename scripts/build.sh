@@ -10,6 +10,7 @@ SHARED_FILES=(
   popup/
   icons/
   utils/
+  onboarding/
 )
 
 build_target() {

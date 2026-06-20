@@ -1,16 +1,18 @@
-# Typlx — Chrome Grammar Extension
+# Typlx — Browser Grammar Extension
 
-Chrome Manifest V3 extension that fixes grammar and spelling in any text field using multiple LLM providers (OpenAI-compatible and Anthropic).
+Cross-browser Manifest V3 extension (Chrome + Firefox) that fixes grammar and spelling in any text field using multiple LLM providers (OpenAI-compatible and Anthropic).
 
 ## Architecture
 
-- **background/service-worker.js** — Chrome service worker handling API calls and config validation via message passing
+- **manifest.json** — Chrome manifest (service_worker background)
+- **manifest.firefox.json** — Firefox manifest (gecko settings, background scripts array)
+- **background/service-worker.js** — Background script handling API calls and config validation via message passing
 - **background/providers/** — Provider adapter modules (OpenAI, Anthropic) with a registry
 - **content/content.js** — Content script injecting grammar-fix buttons into editable elements (IIFE, not a module)
 - **content/content-core.js** — Exported pure functions for DOM detection and text manipulation (testable)
 - **popup/popup.js** — Settings UI logic for provider selection, API config, and per-site toggles
 - **utils/crypto.js** — AES-GCM encryption for token storage using PBKDF2 key derivation
-- **utils/storage.js** — Chrome storage wrapper with encrypted token support
+- **utils/storage.js** — Browser storage wrapper with encrypted token support (uses chrome.* namespace, compatible with both Chrome and Firefox MV3)
 
 ## Key Constraints
 
@@ -28,6 +30,9 @@ npm run test:coverage      # vitest with v8 coverage
 npm run lint               # eslint
 npm run format:check       # prettier --check
 npm run validate           # lint + format:check + test
+npm run build              # build Chrome + Firefox to dist/
+npm run build:chrome       # build and report Chrome output
+npm run build:firefox      # build and report Firefox output
 ```
 
 ## Testing
@@ -36,4 +41,4 @@ Vitest with jsdom. Chrome APIs are mocked in tests/setup.js (chrome.storage.loca
 
 ## CI
 
-GitHub Actions (.github/workflows/ci.yml) runs lint, test (with coverage), and package on push to main and develop. GitLab CI (.gitlab-ci.yml) remains as a legacy mirror.
+GitHub Actions (.github/workflows/ci.yml) runs lint, test (with coverage), and packages both Chrome and Firefox zips on push to main and develop. Publish workflows trigger on GitHub releases: publish-chrome.yml uploads to Chrome Web Store, publish-firefox.yml signs and submits to Firefox Add-ons (AMO). GitLab CI (.gitlab-ci.yml) remains as a legacy mirror.

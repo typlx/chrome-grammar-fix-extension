@@ -15,7 +15,8 @@
     "build": "bash scripts/build.sh",
     "build:chrome": "bash scripts/build.sh && echo 'Chrome build: dist/chrome/'",
     "build:firefox": "bash scripts/build.sh && echo 'Firefox build: dist/firefox/'",
-    "publish:chrome": "bash scripts/publish-chrome.sh"
+    "publish:chrome": "bash scripts/publish-chrome.sh",
+    "publish:firefox": "bash scripts/publish-firefox.sh"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
