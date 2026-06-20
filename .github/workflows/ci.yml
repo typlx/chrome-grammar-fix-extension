@@ -32,6 +32,19 @@ jobs:
       - run: npm ci --include=dev
       - run: npm run test:coverage
 
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npx puppeteer browsers install chrome
+      - run: npm run test:e2e
+
   package:
     name: Package Extension
     runs-on: ubuntu-latest
@@ -39,7 +52,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     steps:
       - uses: actions/checkout@v4
-      - name: Build Chrome and Firefox zips
+      - name: Build Chrome, Firefox, and Edge zips
         run: bash scripts/build.sh
       - uses: actions/upload-artifact@v4
         with:
@@ -50,4 +63,9 @@ jobs:
         with:
           name: typlx-firefox
           path: dist/typlx-firefox.zip
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: typlx-edge
+          path: dist/typlx-edge.zip
           retention-days: 30

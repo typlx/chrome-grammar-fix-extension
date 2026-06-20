@@ -38,11 +38,13 @@ echo "Building Typlx extension..."
 
 build_target "chrome" "manifest.json"
 build_target "firefox" "manifest.firefox.json"
+build_target "edge" "manifest.json"
 
 if command -v zip &>/dev/null; then
   (cd "$DIST/chrome" && zip -r "$DIST/typlx-chrome.zip" . -q)
   (cd "$DIST/firefox" && zip -r "$DIST/typlx-firefox.zip" . -q)
-  echo "Packaged: dist/typlx-chrome.zip, dist/typlx-firefox.zip"
+  (cd "$DIST/edge" && zip -r "$DIST/typlx-edge.zip" . -q)
+  echo "Packaged: dist/typlx-chrome.zip, dist/typlx-firefox.zip, dist/typlx-edge.zip"
 else
   echo "zip not found — skipping packaging, use dist/ directories directly"
 fi

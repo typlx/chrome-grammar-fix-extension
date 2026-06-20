@@ -1,0 +1,89 @@
+name: Publish to Microsoft Edge Add-ons
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npm run lint
+      - run: npm run format:check
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --include=dev
+      - run: npm run test:coverage
+
+  publish:
+    name: Publish to Edge Add-ons Store
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build extension zip
+        run: bash scripts/build.sh
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: typlx-edge-${{ github.event.release.tag_name }}
+          path: dist/typlx-edge.zip
+          retention-days: 90
+
+      - name: Get OAuth2 access token
+        id: auth
+        run: |
+          TOKEN=$(curl -s -X POST "${{ secrets.EDGE_ACCESS_TOKEN_URL }}" \
+            -H "Content-Type: application/x-www-form-urlencoded" \
+            -d "client_id=${{ secrets.EDGE_CLIENT_ID }}&client_secret=${{ secrets.EDGE_CLIENT_SECRET }}&grant_type=client_credentials&scope=https://api.addons.microsoftedge.microsoft.com/.default" \
+            | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Upload package to Edge Add-ons draft
+        id: upload
+        run: |
+          OPERATION_ID=$(curl -s -D - -X POST \
+            "https://api.addons.microsoftedge.microsoft.com/v1/products/${{ secrets.EDGE_PRODUCT_ID }}/submissions/draft/package" \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+            -H "Content-Type: application/zip" \
+            --data-binary @dist/typlx-edge.zip \
+            | grep -i "^location:" | sed 's/.*operations\///' | tr -d '\r\n')
+          echo "operation_id=$OPERATION_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Poll upload status
+        run: |
+          for i in $(seq 1 20); do
+            STATUS=$(curl -s \
+              "https://api.addons.microsoftedge.microsoft.com/v1/products/${{ secrets.EDGE_PRODUCT_ID }}/submissions/draft/package/operations/${{ steps.upload.outputs.operation_id }}" \
+              -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+              | python3 -c "import sys,json; print(json.load(sys.stdin).get('status',''))")
+            echo "Upload status: $STATUS"
+            if [ "$STATUS" = "Succeeded" ]; then exit 0; fi
+            if [ "$STATUS" = "Failed" ]; then echo "Upload failed" && exit 1; fi
+            sleep 10
+          done
+          echo "Timed out waiting for upload" && exit 1
+
+      - name: Publish submission
+        run: |
+          curl -s -X POST \
+            "https://api.addons.microsoftedge.microsoft.com/v1/products/${{ secrets.EDGE_PRODUCT_ID }}/submissions" \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+            -H "Content-Length: 0"

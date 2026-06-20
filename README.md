@@ -29,6 +29,7 @@ Most grammar checkers send every keystroke to a proprietary cloud. Typlx takes a
 | Price                | Free + your API costs   | Free tier / $30/mo | Free tier / $5/mo                  |
 | Chrome extension     | Yes (Manifest V3)       | Yes                | Yes                                |
 | Firefox extension    | Yes (Manifest V3)       | No                 | Yes                                |
+| Edge extension       | Yes (Manifest V3)       | Yes                | Yes                                |
 | Per-site toggle      | Yes                     | Yes                | Yes                                |
 | Token encryption     | AES-GCM at rest         | Proprietary        | N/A                                |
 
@@ -37,6 +38,10 @@ Most grammar checkers send every keystroke to a proprietary cloud. Typlx takes a
 ### Chrome Web Store
 
 [Install Typlx for Chrome](https://chromewebstore.google.com/detail/typlx/koffcnafpmfkoafknhkmcgcpdgmpgfop) from the Chrome Web Store.
+
+### Microsoft Edge Add-ons
+
+[Install Typlx for Edge](https://microsoftedge.microsoft.com/addons/detail/typlx/PLACEHOLDER) from the Microsoft Edge Add-ons store.
 
 ### Firefox Add-ons
 
@@ -60,6 +65,7 @@ npm run build
 
 3. Load in your browser:
    - **Chrome**: Navigate to `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and select `dist/chrome/`
+   - **Edge**: Navigate to `edge://extensions`, enable **Developer mode**, click **Load unpacked** and select `dist/edge/`
    - **Firefox**: Navigate to `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on** and select `dist/firefox/manifest.json`
 
 4. Configure:
