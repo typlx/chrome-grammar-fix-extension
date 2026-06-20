@@ -39,18 +39,15 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     steps:
       - uses: actions/checkout@v4
-      - name: Build extension zip
-        run: |
-          zip -r typlx-extension.zip \
-            manifest.json \
-            background/ \
-            content/ \
-            popup/ \
-            utils/ \
-            icons/ \
-            -x "*.test.js"
+      - name: Build Chrome and Firefox zips
+        run: bash scripts/build.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: typlx-extension
-          path: typlx-extension.zip
+          name: typlx-chrome
+          path: dist/typlx-chrome.zip
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: typlx-firefox
+          path: dist/typlx-firefox.zip
           retention-days: 30

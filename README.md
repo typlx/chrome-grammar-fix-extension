@@ -28,14 +28,19 @@ Most grammar checkers send every keystroke to a proprietary cloud. Typlx takes a
 | Local/offline models | Yes (via Ollama, etc.)  | No                 | Self-hosted server only            |
 | Price                | Free + your API costs   | Free tier / $30/mo | Free tier / $5/mo                  |
 | Chrome extension     | Yes (Manifest V3)       | Yes                | Yes                                |
+| Firefox extension    | Yes (Manifest V3)       | No                 | Yes                                |
 | Per-site toggle      | Yes                     | Yes                | Yes                                |
 | Token encryption     | AES-GCM at rest         | Proprietary        | N/A                                |
 
 ## Install
 
-### Chrome Web Store (recommended)
+### Chrome Web Store
 
-[Install Typlx](https://chromewebstore.google.com/detail/typlx/koffcnafpmfkoafknhkmcgcpdgmpgfop) from the Chrome Web Store.
+[Install Typlx for Chrome](https://chromewebstore.google.com/detail/typlx/koffcnafpmfkoafknhkmcgcpdgmpgfop) from the Chrome Web Store.
+
+### Firefox Add-ons
+
+[Install Typlx for Firefox](https://addons.mozilla.org/en-US/firefox/addon/typlx/) from Firefox Add-ons (AMO).
 
 ### From Source
 
@@ -47,12 +52,17 @@ cd chrome-grammar-fix-extension
 npm install --include=dev
 ```
 
-2. Load in Chrome:
-   - Navigate to `chrome://extensions`
-   - Enable **Developer mode**
-   - Click **Load unpacked** and select this project folder
+2. Build both targets:
 
-3. Configure:
+```bash
+npm run build
+```
+
+3. Load in your browser:
+   - **Chrome**: Navigate to `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and select `dist/chrome/`
+   - **Firefox**: Navigate to `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on** and select `dist/firefox/manifest.json`
+
+4. Configure:
    - Click the Typlx icon in the toolbar
    - Select your LLM provider (OpenAI-compatible or Anthropic Claude)
    - Enter your API URL, model, and token
@@ -85,7 +95,8 @@ Any API that implements the OpenAI chat completions interface works — includin
 ## Project Structure
 
 ```text
-manifest.json
+manifest.json              # Chrome manifest
+manifest.firefox.json      # Firefox manifest (gecko settings, background scripts)
 background/
   service-worker.js
   providers/
