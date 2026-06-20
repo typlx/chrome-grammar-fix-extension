@@ -11,12 +11,15 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "test:e2e": "vitest run --config vitest.e2e.config.js",
     "validate": "npm run lint && npm run format:check && npm run test",
     "build": "bash scripts/build.sh",
     "build:chrome": "bash scripts/build.sh && echo 'Chrome build: dist/chrome/'",
     "build:firefox": "bash scripts/build.sh && echo 'Firefox build: dist/firefox/'",
+    "build:edge": "bash scripts/build.sh && echo 'Edge build: dist/edge/'",
     "publish:chrome": "bash scripts/publish-chrome.sh",
-    "publish:firefox": "bash scripts/publish-firefox.sh"
+    "publish:firefox": "bash scripts/publish-firefox.sh",
+    "publish:edge": "bash scripts/publish-edge.sh"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
@@ -26,6 +29,7 @@
     "globals": "^17.5.0",
     "jsdom": "^26.1.0",
     "prettier": "^3.8.3",
+    "puppeteer": "^24.43.1",
     "vitest": "^3.2.4"
   }
 }
