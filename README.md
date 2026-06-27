@@ -41,7 +41,7 @@ Most grammar checkers send every keystroke to a proprietary cloud. Typlx takes a
 
 ### Microsoft Edge Add-ons
 
-[Install Typlx for Edge](https://microsoftedge.microsoft.com/addons/detail/typlx/PLACEHOLDER) from the Microsoft Edge Add-ons store.
+Typlx for Edge is coming soon. Check back for the Microsoft Edge Add-ons store listing.
 
 ### Firefox Add-ons
 
