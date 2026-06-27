@@ -1,6 +1,7 @@
 stages:
   - quality
   - test
+  - e2e
   - package
 
 lint:
@@ -33,6 +34,23 @@ test:
         path: coverage/cobertura-coverage.xml
     when: always
 
+e2e:
+  stage: e2e
+  image: node:20
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq --no-install-recommends
+      ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 libatk1.0-0
+      libcups2 libdbus-1-3 libdrm2 libgbm1 libgtk-3-0 libnspr4 libnss3
+      libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 xdg-utils > /dev/null 2>&1
+  script:
+    - npm ci --include=dev
+    - npx puppeteer browsers install chrome
+    - npm run test:e2e
+
 package:
   stage: package
   image: alpine:latest
@@ -40,17 +58,11 @@ package:
   rules:
     - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "develop"
   script:
-    - apk add --no-cache zip
-    - |
-      zip -r typlx-extension.zip \
-        manifest.json \
-        background/ \
-        content/ \
-        popup/ \
-        utils/ \
-        icons/ \
-        -x "*.test.js"
+    - apk add --no-cache zip bash
+    - bash scripts/build.sh
   artifacts:
     paths:
-      - typlx-extension.zip
+      - dist/typlx-chrome.zip
+      - dist/typlx-firefox.zip
+      - dist/typlx-edge.zip
     expire_in: 30 days

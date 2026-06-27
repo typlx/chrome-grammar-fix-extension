@@ -1,9 +1,13 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { saveConfig } from '../../utils/storage.js';
-import { handleFixGrammar, validateConfig } from '../../background/service-worker.js';
+import { handleFixGrammar, validateConfig, clearCache } from '../../background/service-worker.js';
 import { extractApiErrorMessage } from '../../background/providers/openai-provider.js';
 
 describe('service-worker', () => {
+  beforeEach(() => {
+    clearCache();
+  });
+
   describe('handleFixGrammar', () => {
     it('returns error when text is empty', async () => {
       const result = await handleFixGrammar('');
@@ -25,7 +29,7 @@ describe('service-worker', () => {
       expect(result.error).toContain('API token not configured');
     });
 
-    it('calls the OpenAI-compatible API and returns corrected text', async () => {
+    it('calls the OpenAI-compatible API and returns corrected text with metadata', async () => {
       await saveConfig({
         provider: 'openai',
         apiUrl: 'https://api.example.com/v1',
@@ -42,7 +46,10 @@ describe('service-worker', () => {
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
 
       const result = await handleFixGrammar('fix this plz');
-      expect(result).toEqual({ corrected: 'Fixed text here.' });
+      expect(result.corrected).toBe('Fixed text here.');
+      expect(result.wordCount).toBe(3);
+      expect(result.elapsedMs).toBeGreaterThanOrEqual(0);
+      expect(result.detectedLanguage).toBe('en');
 
       const [url, options] = fetch.mock.calls[0];
       expect(url).toBe('https://api.example.com/v1/chat/completions');
@@ -68,12 +75,40 @@ describe('service-worker', () => {
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(mockResponse));
 
       const result = await handleFixGrammar('fix this plz');
-      expect(result).toEqual({ corrected: 'Corrected text from Claude.' });
+      expect(result.corrected).toBe('Corrected text from Claude.');
 
       const [url, options] = fetch.mock.calls[0];
       expect(url).toBe('https://api.anthropic.com/v1/messages');
       expect(options.headers['x-api-key']).toBe('sk-ant-test');
       expect(options.headers['anthropic-version']).toBe('2023-06-01');
+    });
+
+    it('returns cached result for identical text within TTL', async () => {
+      await saveConfig({
+        provider: 'openai',
+        apiUrl: 'https://api.example.com/v1',
+        model: 'test-model',
+        token: 'sk-test',
+      });
+
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            choices: [{ message: { content: 'Cached result.' } }],
+          }),
+        }),
+      );
+
+      const first = await handleFixGrammar('cache me');
+      expect(first.corrected).toBe('Cached result.');
+      expect(fetch).toHaveBeenCalledTimes(1);
+
+      const second = await handleFixGrammar('cache me');
+      expect(second.corrected).toBe('Cached result.');
+      expect(second.fromCache).toBe(true);
+      expect(fetch).toHaveBeenCalledTimes(1);
     });
 
     it('strips trailing slashes from API URL before calling', async () => {
@@ -94,7 +129,7 @@ describe('service-worker', () => {
         }),
       );
 
-      await handleFixGrammar('hello');
+      await handleFixGrammar('hello there world');
       expect(fetch.mock.calls[0][0]).toBe('https://api.example.com/v1/chat/completions');
     });
 
@@ -115,7 +150,7 @@ describe('service-worker', () => {
         }),
       );
 
-      await expect(handleFixGrammar('hello')).rejects.toThrow('API error 401');
+      await expect(handleFixGrammar('hello there world')).rejects.toThrow('API error 401');
     });
 
     it('throws when API response has no choices', async () => {
@@ -134,7 +169,9 @@ describe('service-worker', () => {
         }),
       );
 
-      await expect(handleFixGrammar('hello')).rejects.toThrow('Unexpected API response format');
+      await expect(handleFixGrammar('hello there world')).rejects.toThrow(
+        'Unexpected API response format',
+      );
     });
   });
 

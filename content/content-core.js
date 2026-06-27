@@ -39,20 +39,51 @@ export function hasEditableAncestor(el) {
   return false;
 }
 
+export function isTooSmall(el) {
+  const rect = el.getBoundingClientRect();
+  if (rect.width < 100 || rect.height < 30) return true;
+  const style = window.getComputedStyle(el);
+  return style.display === 'none' || style.visibility === 'hidden';
+}
+
+export function isTwitterComposeBox(el) {
+  const isTwitter =
+    window.location.hostname === 'twitter.com' || window.location.hostname === 'x.com';
+  if (!isTwitter) return false;
+  if (!el.isContentEditable) return false;
+  if (el.getAttribute('role') !== 'textbox') return false;
+  return !isTooSmall(el);
+}
+
 export function shouldAttachTarget(el) {
   if (!isEditable(el)) return false;
   if (hasEditableAncestor(el)) return false;
 
-  const isGmail = window.location.hostname === 'mail.google.com';
-  if (isGmail) {
-    return isGmailComposeBody(el);
-  }
+  const hostname = window.location.hostname;
+  if (hostname === 'docs.google.com') return false;
+
+  const isGmail = hostname === 'mail.google.com';
+  if (isGmail) return isGmailComposeBody(el);
+
+  const isTwitter = hostname === 'twitter.com' || hostname === 'x.com';
+  if (isTwitter) return isTwitterComposeBox(el);
+
+  if (isTooSmall(el)) return false;
 
   return true;
 }
 
 export function getText(el) {
   if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') return el.value;
+  if (el.isContentEditable) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    const parts = [];
+    let node;
+    while ((node = walker.nextNode())) {
+      parts.push(node.textContent);
+    }
+    return parts.join('') || el.innerText;
+  }
   return el.innerText;
 }
 
@@ -132,4 +163,8 @@ export function showTooltip(tooltip, msg, duration = 2500) {
   tooltip.textContent = msg;
   tooltip.classList.add('visible');
   setTimeout(() => tooltip.classList.remove('visible'), duration);
+}
+
+export function countWords(text) {
+  return text.trim().split(/\s+/).filter(Boolean).length;
 }

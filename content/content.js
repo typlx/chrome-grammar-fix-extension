@@ -2,7 +2,10 @@
   const PROCESSED = new WeakSet();
   const ICON_HOST_ATTR = 'data-gf-host';
   const DISABLED_SITES_KEY = 'grammarfix_disabled_sites';
-  const isGmail = window.location.hostname === 'mail.google.com';
+  const hostname = window.location.hostname;
+  const isGmail = hostname === 'mail.google.com';
+  const isTwitter = hostname === 'twitter.com' || hostname === 'x.com';
+  const isGoogleDocs = hostname === 'docs.google.com';
 
   const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <path d="M12 20h9"/>
@@ -95,6 +98,15 @@
       font-size: 12px;
       color: #a0a0b8;
       border-bottom: 1px solid #2a2a3e;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .gf-preview-lang {
+      font-weight: 400;
+      font-size: 11px;
+      color: #6a6a82;
+      text-transform: uppercase;
     }
     .gf-preview-diff {
       padding: 10px 12px;
@@ -178,19 +190,45 @@
     return false;
   }
 
+  function isTooSmall(el) {
+    const rect = el.getBoundingClientRect();
+    if (rect.width < 100 || rect.height < 30) return true;
+    const style = window.getComputedStyle(el);
+    return style.display === 'none' || style.visibility === 'hidden';
+  }
+
+  function isTwitterComposeBox(el) {
+    if (!isTwitter) return false;
+    if (!el.isContentEditable) return false;
+    if (el.getAttribute('role') !== 'textbox') return false;
+    return !isTooSmall(el);
+  }
+
   function shouldAttachTarget(el) {
     if (!isEditable(el)) return false;
     if (hasEditableAncestor(el)) return false;
 
-    if (isGmail) {
-      return isGmailComposeBody(el);
-    }
+    if (isGoogleDocs) return false;
+
+    if (isGmail) return isGmailComposeBody(el);
+    if (isTwitter) return isTwitterComposeBox(el);
+
+    if (isTooSmall(el)) return false;
 
     return true;
   }
 
   function getText(el) {
     if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') return el.value;
+    if (el.isContentEditable) {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+      const parts = [];
+      let node;
+      while ((node = walker.nextNode())) {
+        parts.push(node.textContent);
+      }
+      return parts.join('') || el.innerText;
+    }
     return el.innerText;
   }
 
@@ -259,6 +297,10 @@
     tooltip.textContent = msg;
     tooltip.classList.add('visible');
     setTimeout(() => tooltip.classList.remove('visible'), duration);
+  }
+
+  function countWords(text) {
+    return text.trim().split(/\s+/).filter(Boolean).length;
   }
 
   function computeWordDiff(original, corrected) {
@@ -355,13 +397,17 @@
     const preview = document.createElement('div');
     preview.className = 'gf-preview';
     preview.innerHTML = `
-      <div class="gf-preview-header">Suggested corrections</div>
+      <div class="gf-preview-header">
+        <span>Suggested corrections</span>
+        <span class="gf-preview-lang"></span>
+      </div>
       <div class="gf-preview-diff"></div>
       <div class="gf-preview-actions">
         <button class="gf-reject">Reject</button>
         <button class="gf-accept">Accept</button>
       </div>`;
     const diffContainer = preview.querySelector('.gf-preview-diff');
+    const langBadge = preview.querySelector('.gf-preview-lang');
     const acceptBtn = preview.querySelector('.gf-accept');
     const rejectBtn = preview.querySelector('.gf-reject');
 
@@ -399,6 +445,7 @@
       btn.innerHTML = ICON_SVG;
       showTooltip(tooltip, selection ? 'Selection fixed!' : 'Text fixed!');
       setTimeout(() => btn.classList.remove('success'), 2000);
+      chrome.runtime.sendMessage({ type: 'recordAccepted' }).catch(() => {});
     });
 
     rejectBtn.addEventListener('click', (e) => {
@@ -407,6 +454,7 @@
       dismissPreview();
       btn.innerHTML = ICON_SVG;
       showTooltip(tooltip, 'Correction dismissed');
+      chrome.runtime.sendMessage({ type: 'recordRejected' }).catch(() => {});
     });
 
     btn.addEventListener('click', async (e) => {
@@ -440,7 +488,10 @@
           btn.classList.remove('loading');
           btn.classList.add('error');
           btn.innerHTML = ICON_SVG;
-          showTooltip(tooltip, response.error);
+          const errorMsg = response.error.includes('not configured')
+            ? 'API key needed — click Typlx icon in toolbar'
+            : response.error;
+          showTooltip(tooltip, errorMsg, 7000);
           setTimeout(() => btn.classList.remove('error'), 3000);
           return;
         }
@@ -458,9 +509,18 @@
         diffContainer.innerHTML = renderDiffHtml(diff);
         pendingCorrection = { selection, corrected: response.corrected };
 
+        if (response.detectedLanguage && langBadge) {
+          langBadge.textContent = response.detectedLanguage;
+        }
+
         btn.classList.remove('loading');
         btn.innerHTML = ICON_SVG;
         preview.classList.add('visible');
+
+        const wordCount = countWords(text);
+        chrome.runtime
+          .sendMessage({ type: 'recordCorrection', charCount: text.length, wordCount })
+          .catch(() => {});
       } catch (err) {
         btn.classList.remove('loading');
         btn.classList.add('error');
@@ -483,14 +543,42 @@
     cleanup.observe(document.body, { childList: true, subtree: true });
   }
 
+  let scanTimer = null;
+  const SCAN_DEBOUNCE_MS = 150;
+
+  function scheduleScan(root) {
+    if (scanTimer) return;
+    scanTimer = setTimeout(() => {
+      scanTimer = null;
+      scanAndAttach(root);
+    }, SCAN_DEBOUNCE_MS);
+  }
+
+  function scanShadowRoots(root) {
+    const elements = root.querySelectorAll('*');
+    for (const el of elements) {
+      if (el.shadowRoot) {
+        scanAndAttach(el.shadowRoot);
+      }
+    }
+  }
+
   function scanAndAttach(root = document) {
-    const selector = isGmail
-      ? '[contenteditable="true"][role="textbox"]'
-      : 'textarea, [contenteditable="true"], [contenteditable=""], input[type="text"], input[type="search"], input[type="email"], input[type="url"]';
+    if (isGoogleDocs) return;
+
+    let selector;
+    if (isGmail || isTwitter) {
+      selector = '[contenteditable="true"][role="textbox"]';
+    } else {
+      selector =
+        'textarea, [contenteditable="true"], [contenteditable=""], input[type="text"], input[type="search"], input[type="email"], input[type="url"]';
+    }
     const targets = root.querySelectorAll(selector);
     targets.forEach((target) => {
       if (shouldAttachTarget(target)) attachIcon(target);
     });
+
+    scanShadowRoots(root);
   }
 
   async function init() {
@@ -498,19 +586,31 @@
     const disabledSites = result[DISABLED_SITES_KEY] || [];
     if (disabledSites.includes(window.location.hostname)) return;
 
-    scanAndAttach();
+    if (typeof requestIdleCallback === 'function') {
+      requestIdleCallback(() => scanAndAttach());
+    } else {
+      scanAndAttach();
+    }
 
     const observer = new MutationObserver((mutations) => {
+      let needsScan = false;
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (node.nodeType !== Node.ELEMENT_NODE) continue;
-          if (shouldAttachTarget(node)) attachIcon(node);
-          scanAndAttach(node);
+          if (shouldAttachTarget(node)) {
+            attachIcon(node);
+          } else {
+            needsScan = true;
+          }
         }
       }
+      if (needsScan) scheduleScan();
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
+
+    window.addEventListener('popstate', () => scheduleScan());
+    window.addEventListener('hashchange', () => scheduleScan());
   }
 
   init();

@@ -1,16 +1,18 @@
-# Typlx — Chrome Grammar Extension
+# Typlx — Browser Grammar Extension
 
-Chrome Manifest V3 extension that fixes grammar and spelling in any text field using multiple LLM providers (OpenAI-compatible and Anthropic).
+Cross-browser Manifest V3 extension (Chrome + Firefox + Edge) that fixes grammar and spelling in any text field using multiple LLM providers (OpenAI-compatible and Anthropic).
 
 ## Architecture
 
-- **background/service-worker.js** — Chrome service worker handling API calls and config validation via message passing
+- **manifest.json** — Chrome manifest (service_worker background)
+- **manifest.firefox.json** — Firefox manifest (gecko settings, background scripts array)
+- **background/service-worker.js** — Background script handling API calls and config validation via message passing
 - **background/providers/** — Provider adapter modules (OpenAI, Anthropic) with a registry
 - **content/content.js** — Content script injecting grammar-fix buttons into editable elements (IIFE, not a module)
 - **content/content-core.js** — Exported pure functions for DOM detection and text manipulation (testable)
 - **popup/popup.js** — Settings UI logic for provider selection, API config, and per-site toggles
 - **utils/crypto.js** — AES-GCM encryption for token storage using PBKDF2 key derivation
-- **utils/storage.js** — Chrome storage wrapper with encrypted token support
+- **utils/storage.js** — Browser storage wrapper with encrypted token support (uses chrome.\* namespace, compatible with both Chrome and Firefox MV3)
 
 ## Key Constraints
 
@@ -23,17 +25,23 @@ Chrome Manifest V3 extension that fixes grammar and spelling in any text field u
 
 ```bash
 npm install --include=dev  # install dependencies (env may omit devDeps by default)
-npm test                   # vitest run
+npm test                   # vitest run (unit + integration)
 npm run test:coverage      # vitest with v8 coverage
+npm run test:e2e           # Puppeteer E2E tests (requires Chrome)
 npm run lint               # eslint
 npm run format:check       # prettier --check
 npm run validate           # lint + format:check + test
+npm run build              # build Chrome + Firefox to dist/
+npm run build:chrome       # build and report Chrome output
+npm run build:firefox      # build and report Firefox output
 ```
 
 ## Testing
 
-Vitest with jsdom. Chrome APIs are mocked in tests/setup.js (chrome.storage.local, chrome.runtime). Web Crypto is polyfilled from Node's webcrypto. Test globals (describe, it, expect, vi) are enabled via vitest config.
+**Unit + Integration:** Vitest with jsdom. Chrome APIs are mocked in tests/setup.js (chrome.storage.local, chrome.runtime). Web Crypto is polyfilled from Node's webcrypto. Test globals (describe, it, expect, vi) are enabled via vitest config.
+
+**E2E:** Puppeteer launches Chrome with the extension loaded via `--load-extension`. A mock HTTP server (tests/e2e/helpers/mock-api.js) simulates the OpenAI API. Shadow DOM interactions use CDP (Chrome DevTools Protocol) to pierce the closed shadow root in content.js. E2E tests run with a separate vitest config (vitest.e2e.config.js, node environment, single-fork pool). Tests require an x86 environment with Chrome — they run in CI, not in ARM dev containers.
 
 ## CI
 
-GitHub Actions (.github/workflows/ci.yml) runs lint, test (with coverage), and package on push to main and develop. GitLab CI (.gitlab-ci.yml) remains as a legacy mirror.
+GitHub Actions (.github/workflows/ci.yml) runs lint, test (with coverage), E2E tests (Puppeteer + Chrome), and packages Chrome, Firefox, and Edge zips on push to main and develop. Publish workflows trigger on GitHub releases: publish-chrome.yml uploads to Chrome Web Store, publish-firefox.yml signs and submits to Firefox Add-ons (AMO), publish-edge.yml submits to Microsoft Edge Add-ons Store. GitLab CI (.gitlab-ci.yml) remains as a legacy mirror with the same stages.

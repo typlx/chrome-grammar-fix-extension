@@ -27,9 +27,26 @@
       <div class="tabs">
         <button class="tab active" data-tab="settings">Settings</button>
         <button class="tab" data-tab="sites">Sites</button>
+        <button class="tab" data-tab="stats">Stats</button>
       </div>
 
       <div id="settings-panel" class="panel">
+        <div id="setup-hint" class="setup-hint hidden">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+          <span>Enter your API key below to start checking grammar on any website.</span>
+        </div>
+
         <form id="settings-form">
           <div class="field">
             <label for="provider">Provider</label>
@@ -40,6 +57,16 @@
           </div>
 
           <div id="dynamic-fields"></div>
+
+          <div class="field">
+            <label for="language">Language</label>
+            <select id="language">
+              <option value="auto">Auto-detect</option>
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+            </select>
+          </div>
 
           <button type="submit" class="save-btn">Save Settings</button>
         </form>
@@ -62,6 +89,61 @@
           <ul id="disabled-sites-list" class="site-list"></ul>
           <p id="no-disabled-sites" class="muted">No sites disabled</p>
         </div>
+      </div>
+
+      <div id="stats-panel" class="panel hidden">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-corrections">0</div>
+            <div class="stat-label">Corrections</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-accepted">0</div>
+            <div class="stat-label">Accepted</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-rejected">0</div>
+            <div class="stat-label">Rejected</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-words">0</div>
+            <div class="stat-label">Words</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-accuracy">—</div>
+            <div class="stat-label">Accuracy</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-avg-time">—</div>
+            <div class="stat-label">Avg Response</div>
+          </div>
+        </div>
+
+        <div class="trend-section">
+          <label>7-day trend</label>
+          <div class="trend-chart" id="trend-chart"></div>
+          <div class="trend-legend">
+            <span class="trend-legend-item"
+              ><span class="dot dot-corrections"></span> Corrections</span
+            >
+            <span class="trend-legend-item"><span class="dot dot-accepted"></span> Accepted</span>
+          </div>
+        </div>
+
+        <div class="stat-last-used" id="stat-last-used"></div>
+
+        <div class="stats-controls">
+          <div class="analytics-toggle">
+            <span>Track usage stats</span>
+            <button id="toggle-analytics" class="toggle-btn" title="Toggle analytics">
+              <span class="toggle-track">
+                <span class="toggle-thumb"></span>
+              </span>
+            </button>
+          </div>
+          <button id="reset-stats-btn" class="reset-btn">Reset Stats</button>
+        </div>
+        <p class="muted">Stats are stored locally and never sent anywhere.</p>
       </div>
 
       <div id="toast" class="toast"></div>

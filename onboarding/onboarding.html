@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to Typlx</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family:
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        background: #0f0f17;
+        color: #e2e2ef;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .welcome {
+        max-width: 520px;
+        width: 100%;
+        padding: 48px 40px;
+        text-align: center;
+      }
+
+      .logo-area {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+
+      .logo-area svg {
+        width: 36px;
+        height: 36px;
+        color: #6c63ff;
+      }
+
+      .logo-area h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .tagline {
+        font-size: 15px;
+        color: #9a9ab0;
+        margin-bottom: 40px;
+      }
+
+      .steps {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        text-align: left;
+        margin-bottom: 40px;
+      }
+
+      .step {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        padding: 16px 20px;
+        background: #1a1a28;
+        border: 1px solid #2a2a3d;
+        border-radius: 12px;
+      }
+
+      .step-number {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #6c63ff;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      .step-content h3 {
+        font-size: 15px;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 4px;
+      }
+
+      .step-content p {
+        font-size: 13px;
+        color: #9a9ab0;
+        line-height: 1.5;
+      }
+
+      .cta-btn {
+        display: inline-block;
+        padding: 12px 32px;
+        border: none;
+        border-radius: 10px;
+        background: #6c63ff;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+      }
+
+      .cta-btn:hover {
+        background: #5a52d5;
+      }
+      .cta-btn:active {
+        transform: scale(0.97);
+      }
+
+      .hint {
+        margin-top: 20px;
+        font-size: 12px;
+        color: #6a6a82;
+        line-height: 1.6;
+      }
+
+      .hint svg {
+        display: inline-block;
+        vertical-align: middle;
+        width: 14px;
+        height: 14px;
+        color: #6c63ff;
+        margin: 0 2px;
+      }
+
+      .key {
+        display: inline-block;
+        padding: 1px 6px;
+        border: 1px solid #3a3a50;
+        border-radius: 4px;
+        background: #1a1a28;
+        font-size: 11px;
+        font-family: monospace;
+        color: #9a9ab0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="welcome">
+      <div class="logo-area">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+        </svg>
+        <h1>Typlx</h1>
+      </div>
+      <p class="tagline">Privacy-first grammar and spelling checker for any text field</p>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Add your API key</h3>
+            <p>
+              Click the Typlx icon in your browser toolbar and enter your OpenAI or Anthropic API
+              key. Your key is encrypted and never leaves your browser.
+            </p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Write in any text field</h3>
+            <p>
+              A small purple
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                style="width: 14px; height: 14px; vertical-align: middle; color: #6c63ff"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+              </svg>
+              button appears in the corner of text fields on every website.
+            </p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Review and accept</h3>
+            <p>
+              Click the button to check your text. Typlx shows a word-by-word diff of the
+              corrections so you can accept or reject each fix.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <button class="cta-btn" id="open-settings">Open Settings to Get Started</button>
+
+      <p class="hint">
+        You can also disable Typlx on specific sites from the
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+        </svg>
+        toolbar icon &rarr; Sites tab.
+      </p>
+    </div>
+
+    <script>
+      document.getElementById('open-settings').addEventListener('click', () => {
+        if (chrome.runtime.openOptionsPage) {
+          chrome.runtime.openOptionsPage();
+        }
+        chrome.action.openPopup?.();
+        window.close();
+      });
+    </script>
+  </body>
+</html>

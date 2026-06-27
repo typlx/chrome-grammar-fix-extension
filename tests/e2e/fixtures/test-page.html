@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Typlx E2E Test Page</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        padding: 40px;
+        background: #f5f5f5;
+      }
+      .field {
+        margin-bottom: 24px;
+      }
+      label {
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 600;
+      }
+      textarea,
+      input[type='text'],
+      [contenteditable] {
+        width: 400px;
+        min-height: 80px;
+        padding: 12px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-family: inherit;
+      }
+      input[type='text'] {
+        min-height: auto;
+        height: 44px;
+      }
+      [contenteditable] {
+        background: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Grammar Test Page</h1>
+
+    <div class="field">
+      <label for="test-textarea">Textarea</label>
+      <textarea id="test-textarea" rows="4">I has a error in this sentence.</textarea>
+    </div>
+
+    <div class="field">
+      <label>ContentEditable</label>
+      <div id="test-contenteditable" contenteditable="true">This are wrong grammer.</div>
+    </div>
+
+    <div class="field">
+      <label for="test-input">Text Input</label>
+      <input id="test-input" type="text" value="She dont likes it." />
+    </div>
+
+    <div class="field">
+      <label for="test-empty">Empty Textarea</label>
+      <textarea id="test-empty" rows="3" placeholder="Type here..."></textarea>
+    </div>
+
+    <div class="field">
+      <label for="test-small">Too Small (should not get button)</label>
+      <input id="test-small" type="text" value="tiny" style="width: 50px; height: 20px" />
+    </div>
+  </body>
+</html>

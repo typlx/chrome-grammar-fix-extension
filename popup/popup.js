@@ -23,8 +23,11 @@ const PROVIDER_DEFAULTS = {
   anthropic: { apiUrl: 'https://api.anthropic.com/v1', model: 'claude-sonnet-4-20250514' },
 };
 
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
 const form = document.getElementById('settings-form');
 const providerSelect = document.getElementById('provider');
+const languageSelect = document.getElementById('language');
 const dynamicFields = document.getElementById('dynamic-fields');
 const toast = document.getElementById('toast');
 
@@ -35,6 +38,11 @@ const toggleCurrentSiteBtn = document.getElementById('toggle-current-site');
 const currentSiteLabel = document.getElementById('current-site-label');
 const disabledSitesList = document.getElementById('disabled-sites-list');
 const noDisabledSites = document.getElementById('no-disabled-sites');
+const statsPanel = document.getElementById('stats-panel');
+const setupHint = document.getElementById('setup-hint');
+const toggleAnalyticsBtn = document.getElementById('toggle-analytics');
+const resetStatsBtn = document.getElementById('reset-stats-btn');
+const trendChart = document.getElementById('trend-chart');
 
 let currentHostname = null;
 let toastTimer;
@@ -109,6 +117,13 @@ async function loadSettings() {
   } catch {
     showToast('Failed to load settings', 'error');
   }
+
+  try {
+    const { language } = await chrome.runtime.sendMessage({ type: 'getLanguageConfig' });
+    languageSelect.value = language || 'auto';
+  } catch {
+    /* language config unavailable */
+  }
 }
 
 providerSelect.addEventListener('change', () => {
@@ -133,6 +148,10 @@ form.addEventListener('submit', async (e) => {
     }
 
     await saveConfig(payload);
+    await chrome.runtime.sendMessage({
+      type: 'setLanguageConfig',
+      language: languageSelect.value,
+    });
     showToast('Settings saved and validated');
   } catch {
     showToast('Failed to save settings', 'error');
@@ -147,8 +166,10 @@ tabs.forEach((tab) => {
     const target = tab.dataset.tab;
     settingsPanel.classList.toggle('hidden', target !== 'settings');
     sitesPanel.classList.toggle('hidden', target !== 'sites');
+    statsPanel.classList.toggle('hidden', target !== 'stats');
 
     if (target === 'sites') loadSitesPanel();
+    if (target === 'stats') loadStatsPanel();
   });
 });
 
@@ -234,4 +255,108 @@ toggleCurrentSiteBtn.addEventListener('click', async () => {
   renderDisabledSites(updated);
 });
 
+async function loadStatsPanel() {
+  try {
+    const { stats } = await chrome.runtime.sendMessage({ type: 'getStats' });
+    if (stats) {
+      document.getElementById('stat-corrections').textContent = stats.totalCorrections;
+      document.getElementById('stat-accepted').textContent = stats.totalAccepted;
+      document.getElementById('stat-rejected').textContent = stats.totalRejected;
+      document.getElementById('stat-words').textContent = formatNumber(stats.wordsChecked || 0);
+
+      const total = stats.totalAccepted + stats.totalRejected;
+      const accuracy = total > 0 ? `${Math.round((stats.totalAccepted / total) * 100)}%` : '—';
+      document.getElementById('stat-accuracy').textContent = accuracy;
+
+      const avgTime =
+        stats.responseCount > 0
+          ? `${Math.round(stats.totalResponseMs / stats.responseCount)}ms`
+          : '—';
+      document.getElementById('stat-avg-time').textContent = avgTime;
+
+      const lastUsedEl = document.getElementById('stat-last-used');
+      if (stats.lastUsed) {
+        const date = new Date(stats.lastUsed);
+        lastUsedEl.textContent = `Last used: ${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      } else {
+        lastUsedEl.textContent = 'No corrections yet';
+      }
+    }
+
+    const { enabled } = await chrome.runtime.sendMessage({ type: 'getAnalyticsEnabled' });
+    toggleAnalyticsBtn.classList.toggle('off', !enabled);
+
+    const { trend } = await chrome.runtime.sendMessage({ type: 'getDailyTrend', days: 7 });
+    renderTrendChart(trend || []);
+  } catch {
+    /* stats unavailable */
+  }
+}
+
+function renderTrendChart(trend) {
+  trendChart.innerHTML = '';
+
+  if (!trend.length) return;
+
+  const maxVal = Math.max(1, ...trend.map((d) => Math.max(d.corrections, d.accepted)));
+
+  for (const day of trend) {
+    const group = document.createElement('div');
+    group.className = 'trend-bar-group';
+
+    const bars = document.createElement('div');
+    bars.className = 'trend-bars';
+
+    const corrBar = document.createElement('div');
+    corrBar.className = 'trend-bar corrections';
+    corrBar.style.height = `${(day.corrections / maxVal) * 100}%`;
+    corrBar.title = `${day.corrections} corrections`;
+
+    const accBar = document.createElement('div');
+    accBar.className = 'trend-bar accepted';
+    accBar.style.height = `${(day.accepted / maxVal) * 100}%`;
+    accBar.title = `${day.accepted} accepted`;
+
+    bars.append(corrBar, accBar);
+
+    const label = document.createElement('div');
+    label.className = 'trend-day-label';
+    const dateObj = new Date(day.date + 'T12:00:00');
+    label.textContent = DAY_LABELS[dateObj.getDay()];
+
+    group.append(bars, label);
+    trendChart.appendChild(group);
+  }
+}
+
+function formatNumber(n) {
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}K`;
+  return String(n);
+}
+
+toggleAnalyticsBtn.addEventListener('click', async () => {
+  const isOff = toggleAnalyticsBtn.classList.contains('off');
+  await chrome.runtime.sendMessage({ type: 'setAnalyticsEnabled', enabled: isOff });
+  toggleAnalyticsBtn.classList.toggle('off', !isOff);
+});
+
+resetStatsBtn.addEventListener('click', async () => {
+  await chrome.runtime.sendMessage({ type: 'resetStats' });
+  await loadStatsPanel();
+  showToast('Stats reset');
+});
+
+async function checkFirstRun() {
+  try {
+    const config = await getConfig();
+    if (!config.token) {
+      setupHint.classList.remove('hidden');
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 loadSettings();
+checkFirstRun();

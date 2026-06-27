@@ -16,6 +16,8 @@ Typlx connects your browser directly to the LLM of your choice — OpenAI, Anthr
 
 **[→ Install from Chrome Web Store](https://chromewebstore.google.com/detail/koffcnafpmfkoafknhkmcgcpdgmpgfop)**
 
+Also available on [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/typlx/PLACEHOLDER) and [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/typlx/).
+
 Or clone and load unpacked for development (see [Contributing](CONTRIBUTING.md)).
 
 ## Why Typlx?
@@ -35,6 +37,33 @@ Or clone and load unpacked for development (see [Contributing](CONTRIBUTING.md))
 - **Anthropic** — Claude Haiku, Sonnet, Opus
 - **Google** — Gemini Flash, Gemini Pro
 - **Local** — Any Ollama or LM Studio model (fully offline, no API key)
+
+### From Source
+
+1. Clone and install:
+
+```bash
+git clone https://github.com/typlx/chrome-grammar-fix-extension.git
+cd chrome-grammar-fix-extension
+npm install --include=dev
+```
+
+2. Build both targets:
+
+```bash
+npm run build
+```
+
+3. Load in your browser:
+   - **Chrome**: Navigate to `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and select `dist/chrome/`
+   - **Edge**: Navigate to `edge://extensions`, enable **Developer mode**, click **Load unpacked** and select `dist/edge/`
+   - **Firefox**: Navigate to `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on** and select `dist/firefox/manifest.json`
+
+4. Configure:
+   - Click the Typlx icon in the toolbar
+   - Select your LLM provider (OpenAI-compatible or Anthropic Claude)
+   - Enter your API URL, model, and token
+   - Click **Save Settings**
 
 ## Usage
 
@@ -63,7 +92,8 @@ Any API that implements the OpenAI chat completions interface works — includin
 ## Project Structure
 
 ```text
-manifest.json
+manifest.json              # Chrome manifest
+manifest.firefox.json      # Firefox manifest (gecko settings, background scripts)
 background/
   service-worker.js
   providers/

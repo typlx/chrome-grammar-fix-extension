@@ -32,6 +32,15 @@ globalThis.chrome = {
     id: 'test-extension-id-abc123',
     sendMessage: vi.fn(),
     onMessage: { addListener: vi.fn() },
+    onInstalled: { addListener: vi.fn() },
+    getURL: vi.fn((path) => `chrome-extension://test-extension-id-abc123/${path}`),
+  },
+  tabs: {
+    create: vi.fn(),
+    query: vi.fn(async () => []),
+  },
+  action: {
+    openPopup: vi.fn(),
   },
 };
 

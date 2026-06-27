@@ -10,6 +10,7 @@ import {
   renderDiffHtml,
   positionHost,
   showTooltip,
+  countWords,
 } from '../../content/content-core.js';
 import { computeWordDiff } from '../../utils/diff.js';
 
@@ -115,6 +116,14 @@ describe('content-core', () => {
     it('returns true for a top-level textarea on a non-Gmail site', () => {
       const el = document.createElement('textarea');
       document.body.appendChild(el);
+      el.getBoundingClientRect = () => ({
+        width: 300,
+        height: 100,
+        top: 0,
+        left: 0,
+        right: 300,
+        bottom: 100,
+      });
       expect(shouldAttachTarget(el)).toBe(true);
       el.remove();
     });
@@ -350,6 +359,28 @@ describe('content-core', () => {
       expect(tooltip.classList.contains('visible')).toBe(false);
 
       vi.useRealTimers();
+    });
+  });
+
+  describe('countWords', () => {
+    it('counts words in a simple sentence', () => {
+      expect(countWords('hello world')).toBe(2);
+    });
+
+    it('handles multiple spaces between words', () => {
+      expect(countWords('hello   world   foo')).toBe(3);
+    });
+
+    it('returns zero for empty string', () => {
+      expect(countWords('')).toBe(0);
+    });
+
+    it('returns zero for whitespace-only string', () => {
+      expect(countWords('   \t\n  ')).toBe(0);
+    });
+
+    it('counts a single word correctly', () => {
+      expect(countWords('word')).toBe(1);
     });
   });
 });
