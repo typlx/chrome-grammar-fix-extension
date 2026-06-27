@@ -72,28 +72,32 @@ export async function validateConfig(config) {
     };
   }
 
-  const url = `${normalizedBaseUrl}/models`;
-  let response;
+  const modelsUrl = `${normalizedBaseUrl}/models`;
+  let modelsResponse;
   try {
-    response = await fetch(url, {
+    modelsResponse = await fetch(modelsUrl, {
       method: 'GET',
       headers: { Authorization: `Bearer ${token}` },
     });
   } catch (err) {
     return {
       ok: false,
-      error: `Cannot reach API URL (${url}). Check URL/network/CORS. Details: ${err.message}`,
+      error: `Cannot reach API URL (${modelsUrl}). Check URL/network/CORS. Details: ${err.message}`,
     };
   }
 
-  if (!response.ok) {
-    const parsedError = await extractApiErrorMessage(response);
+  if (modelsResponse.status === 404) {
+    return await validateViaChatProbe(normalizedBaseUrl, token, model);
+  }
+
+  if (!modelsResponse.ok) {
+    const parsedError = await extractApiErrorMessage(modelsResponse);
     return { ok: false, error: parsedError };
   }
 
   let data;
   try {
-    data = await response.json();
+    data = await modelsResponse.json();
   } catch {
     return {
       ok: false,
@@ -122,6 +126,44 @@ export async function validateConfig(config) {
         ? `Model "${model}" not found for this token. Available examples: ${sampleModels.join(', ')}`
         : `Model "${model}" not found for this token.`,
     };
+  }
+
+  return { ok: true };
+}
+
+async function validateViaChatProbe(baseUrl, token, model) {
+  const url = `${baseUrl}/chat/completions`;
+  let response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: 'Hi' }],
+        max_tokens: 1,
+      }),
+    });
+  } catch (err) {
+    return {
+      ok: false,
+      error: `Cannot reach API (${url}). Check URL/network/CORS. Details: ${err.message}`,
+    };
+  }
+
+  if (response.status === 401) {
+    return { ok: false, error: 'Unauthorized (401). Token is invalid, expired, or missing required prefix.' };
+  }
+
+  if (response.status === 403) {
+    return { ok: false, error: 'Forbidden (403). Token does not have permission for this endpoint.' };
+  }
+
+  if (response.status >= 500) {
+    return { ok: false, error: `Provider server error (${response.status}). Try again later.` };
   }
 
   return { ok: true };
