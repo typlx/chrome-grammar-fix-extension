@@ -6,7 +6,7 @@ labels: enhancement
 
 **What problem does this solve?**
 A clear description of the problem you're experiencing.
-e.g. "I use Typlix in Notion but the icon doesn't appear in inline comments."
+e.g. "I use Typlx in Notion but the icon doesn't appear in inline comments."
 
 **Describe the solution you'd like**
 A clear, specific description of what you want to happen.

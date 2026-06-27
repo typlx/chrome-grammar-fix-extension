@@ -18,7 +18,7 @@ What you expected to happen.
 **Environment**
 - Chrome version: (check `chrome://version`)
 - OS: Windows / macOS / Linux
-- Typlix version: (check `chrome://extensions`)
+- Typlx version: (check `chrome://extensions`)
 - LLM provider: OpenAI / Anthropic / Gemini / Ollama / Other
 - Model: (e.g. gpt-4o, claude-haiku-4-5)
 

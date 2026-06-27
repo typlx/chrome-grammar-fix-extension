@@ -12,7 +12,7 @@
 - [ ] Tested on: <!-- list the websites/text fields you tested -->
 - [ ] `npm test` passes
 - [ ] No new telemetry or phone-home calls added
-- [ ] API keys are not logged or transmitted to Typlix servers
+- [ ] API keys are not logged or transmitted to Typlx servers
 
 ## Screenshots (if UI changed)
 

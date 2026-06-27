@@ -1,6 +1,6 @@
-# Contributing to Typlix
+# Contributing to Typlx
 
-Thank you for your interest in contributing. Typlix is a small, focused project — contributions that improve reliability, privacy, and model compatibility are especially welcome.
+Thank you for your interest in contributing. Typlx is a small, focused project — contributions that improve reliability, privacy, and model compatibility are especially welcome.
 
 ## Quick Start
 
@@ -26,8 +26,8 @@ Then in Chrome:
 - Bug fixes with a reproduction case
 
 ### Out of scope (for now)
-- Features that require Typlix to proxy or store user text
-- Adding a Typlix cloud account/sync feature
+- Features that require Typlx to proxy or store user text
+- Adding a Typlx cloud account/sync feature
 - Social login integrations
 
 ## Development Notes

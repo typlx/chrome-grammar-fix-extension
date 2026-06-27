@@ -4,7 +4,7 @@ about: Request support for a new LLM provider or model
 labels: model-support
 ---
 
-**Which LLM provider or model do you want Typlix to support?**
+**Which LLM provider or model do you want Typlx to support?**
 e.g. Mistral, Cohere, Together.ai, a specific Ollama model tag
 
 **Does the provider have an OpenAI-compatible API?**

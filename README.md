@@ -1,6 +1,6 @@
-# Typlix — AI Grammar Checker for Chrome
+# Typlx — AI Grammar Checker for Chrome
 
-> AI-powered grammar and writing corrections for every text field in your browser. **Your text never passes through Typlix servers.**
+> AI-powered grammar and writing corrections for every text field in your browser. **Your text never passes through Typlx servers.**
 
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/koffcnafpmfkoafknhkmcgcpdgmpgfop?label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/koffcnafpmfkoafknhkmcgcpdgmpgfop)
 [![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/koffcnafpmfkoafknhkmcgcpdgmpgfop)](https://chromewebstore.google.com/detail/koffcnafpmfkoafknhkmcgcpdgmpgfop)
@@ -8,7 +8,7 @@
 [![CI](https://github.com/typlx/chrome-grammar-fix-extension/actions/workflows/ci.yml/badge.svg)](https://github.com/typlx/chrome-grammar-fix-extension/actions/workflows/ci.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
-Typlix connects your browser directly to the LLM of your choice — OpenAI, Anthropic Claude, Google Gemini, or a fully local model via Ollama. You own the API key. You choose the model. Typlix is just the interface.
+Typlx connects your browser directly to the LLM of your choice — OpenAI, Anthropic Claude, Google Gemini, or a fully local model via Ollama. You own the API key. You choose the model. Typlx is just the interface.
 
 ![Typlx demo](docs/images/typlx-demo.gif)
 
@@ -18,9 +18,9 @@ Typlix connects your browser directly to the LLM of your choice — OpenAI, Anth
 
 Or clone and load unpacked for development (see [Contributing](CONTRIBUTING.md)).
 
-## Why Typlix?
+## Why Typlx?
 
-| | Typlix | Grammarly | LanguageTool |
+| | Typlx | Grammarly | LanguageTool |
 |---|---|---|---|
 | Price | Free | $12–30/mo | Free–$6.99/mo |
 | Your text on their servers | ❌ Never | ✅ Always | ✅ Default (self-host for privacy) |
