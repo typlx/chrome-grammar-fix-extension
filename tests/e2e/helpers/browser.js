@@ -38,20 +38,50 @@ export async function configureExtension(browser, extensionId, apiUrl) {
   await page.goto(extensionUrl(extensionId, 'popup/popup.html'), {
     waitUntil: 'domcontentloaded',
   });
-  await page.waitForSelector('#apiUrl');
 
-  await page.evaluate((url) => {
-    const setField = (id, value) => {
-      const el = document.getElementById(id);
-      el.value = value;
-      el.dispatchEvent(new Event('input', { bubbles: true }));
-    };
-    setField('apiUrl', url);
-    setField('model', 'test-model');
-    setField('token', 'test-token-e2e');
-  }, apiUrl);
+  await page.evaluate(
+    async (config) => {
+      const SALT_KEY = 'grammarfix_salt';
+      const CONFIG_KEY = 'grammarfix_config';
 
-  await page.click('button[type="submit"]');
-  await page.waitForSelector('.toast.success.visible', { timeout: 15_000 });
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      await chrome.storage.local.set({ [SALT_KEY]: Array.from(salt) });
+
+      const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(chrome.runtime.id),
+        'PBKDF2',
+        false,
+        ['deriveKey'],
+      );
+      const key = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt'],
+      );
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ciphertext = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv },
+        key,
+        new TextEncoder().encode(config.token),
+      );
+
+      await chrome.storage.local.set({
+        [CONFIG_KEY]: {
+          provider: 'openai',
+          apiUrl: config.apiUrl,
+          model: config.model,
+          encryptedToken: {
+            iv: Array.from(iv),
+            data: Array.from(new Uint8Array(ciphertext)),
+          },
+        },
+      });
+    },
+    { apiUrl, model: 'test-model', token: 'test-token-e2e' },
+  );
+
   await page.close();
 }
