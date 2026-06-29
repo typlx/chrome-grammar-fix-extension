@@ -207,10 +207,12 @@ describe('Grammar check on a contenteditable div', () => {
 
     const hosts = await page.$$('div[data-gf-host]');
     let targetHost = null;
-    for (const host of hosts) {
-      const box = await host.boundingBox();
+    let targetIndex = 0;
+    for (let i = 0; i < hosts.length; i++) {
+      const box = await hosts[i].boundingBox();
       if (box && Math.abs(box.y - editableBox.y) < 10) {
-        targetHost = host;
+        targetHost = hosts[i];
+        targetIndex = i;
         break;
       }
     }
@@ -220,10 +222,14 @@ describe('Grammar check on a contenteditable div', () => {
 
     await new Promise((r) => setTimeout(r, 2000));
 
-    await withShadow(page, async (shadow) => {
-      await shadow.waitFor('.gf-preview.visible');
-      await shadow.click('.gf-accept');
-    });
+    await withShadow(
+      page,
+      async (shadow) => {
+        await shadow.waitFor('.gf-preview.visible');
+        await shadow.click('.gf-accept');
+      },
+      targetIndex,
+    );
 
     await new Promise((r) => setTimeout(r, 500));
 

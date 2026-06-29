@@ -12,28 +12,29 @@ export async function clickGrammarButton(page) {
   await page.mouse.click(box.x + box.width - 20, box.y + box.height - 20);
 }
 
-export async function withShadow(page, fn) {
+export async function withShadow(page, fn, hostIndex = 0) {
   const cdp = await page.createCDPSession();
   try {
-    return await fn(new ShadowHelper(cdp, page));
+    return await fn(new ShadowHelper(cdp, page, hostIndex));
   } finally {
     await cdp.detach();
   }
 }
 
 class ShadowHelper {
-  constructor(cdp, page) {
+  constructor(cdp, page, hostIndex = 0) {
     this.cdp = cdp;
     this.page = page;
+    this.hostIndex = hostIndex;
   }
 
   async findHost() {
     const { root } = await this.cdp.send('DOM.getDocument', { depth: -1, pierce: true });
-    const { nodeId } = await this.cdp.send('DOM.querySelector', {
+    const { nodeIds } = await this.cdp.send('DOM.querySelectorAll', {
       nodeId: root.nodeId,
       selector: HOST_SELECTOR,
     });
-    return nodeId || null;
+    return nodeIds[this.hostIndex] || null;
   }
 
   async findElement(shadowSelector) {

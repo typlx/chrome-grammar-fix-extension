@@ -111,11 +111,9 @@ describe('Error states', () => {
     mockApi.enqueueDelay(3000, 'Fixed text.');
 
     await clickGrammarButton(page);
-    await new Promise((r) => setTimeout(r, 500));
 
     await withShadow(page, async (shadow) => {
-      const isLoading = await shadow.exists('.gf-btn.loading');
-      expect(isLoading).toBe(true);
+      await shadow.waitFor('.gf-btn.loading', 2000);
     });
   });
 });
