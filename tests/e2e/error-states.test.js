@@ -108,6 +108,9 @@ describe('Error states', () => {
   });
 
   it('shows loading state while waiting for API response', async () => {
+    await page.$eval('#test-textarea', (el) => {
+      el.value = 'Unique loading test text to avoid cache.';
+    });
     mockApi.enqueueDelay(3000, 'Fixed text.');
 
     await clickGrammarButton(page);

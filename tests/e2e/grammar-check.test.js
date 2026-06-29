@@ -203,6 +203,9 @@ describe('Grammar check on a contenteditable div', () => {
     mockApi.setDefaultCorrection('This is correct grammar.');
 
     const editable = await page.$('#test-contenteditable');
+    await page.$eval('#test-contenteditable', (el) => {
+      el.innerText = 'She dont like grammer.';
+    });
     const editableBox = await editable.boundingBox();
 
     const hosts = await page.$$('div[data-gf-host]');
