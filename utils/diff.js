@@ -1,6 +1,13 @@
+const DIFF_TOKEN_LIMIT = 300;
+
 export function computeWordDiff(original, corrected) {
   const originalWords = tokenize(original);
   const correctedWords = tokenize(corrected);
+
+  if (originalWords.length > DIFF_TOKEN_LIMIT || correctedWords.length > DIFF_TOKEN_LIMIT) {
+    return computeSummaryDiff(originalWords, correctedWords);
+  }
+
   const lcs = longestCommonSubsequence(originalWords, correctedWords);
 
   const changes = [];
@@ -85,6 +92,24 @@ function mergeAdjacentChanges(changes) {
   return merged;
 }
 
+function computeSummaryDiff(originalWords, correctedWords) {
+  const origNonWs = originalWords.filter((w) => w.trim());
+  const corrNonWs = correctedWords.filter((w) => w.trim());
+  const origSet = new Set(origNonWs);
+  const corrSet = new Set(corrNonWs);
+  let removed = 0;
+  let added = 0;
+  for (const w of origNonWs) if (!corrSet.has(w)) removed++;
+  for (const w of corrNonWs) if (!origSet.has(w)) added++;
+  return {
+    type: 'summary',
+    added,
+    removed,
+    total: Math.max(origNonWs.length, corrNonWs.length),
+  };
+}
+
 export function hasChanges(diff) {
+  if (diff.type === 'summary') return diff.added > 0 || diff.removed > 0;
   return diff.some((d) => d.type !== 'equal');
 }

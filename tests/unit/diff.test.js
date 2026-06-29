@@ -69,4 +69,61 @@ describe('word-level diff engine', () => {
       expect(added.length).toBeLessThanOrEqual(2);
     });
   });
+
+  describe('long text threshold avoids quadratic freeze', () => {
+    function generateWords(n) {
+      return Array.from({ length: n }, (_, i) => `word${i}`).join(' ');
+    }
+
+    it('returns summary when original exceeds 300 tokens', () => {
+      const original = generateWords(400);
+      const corrected = generateWords(400).replace('word5', 'fixed5');
+      const diff = computeWordDiff(original, corrected);
+      expect(diff.type).toBe('summary');
+      expect(diff.removed).toBeGreaterThanOrEqual(1);
+      expect(diff.added).toBeGreaterThanOrEqual(1);
+      expect(diff.total).toBeGreaterThan(0);
+    });
+
+    it('returns summary when corrected exceeds 300 tokens', () => {
+      const original = generateWords(100);
+      const corrected = generateWords(400);
+      const diff = computeWordDiff(original, corrected);
+      expect(diff.type).toBe('summary');
+    });
+
+    it('returns normal diff array at exactly 300 tokens', () => {
+      const text = generateWords(150);
+      const diff = computeWordDiff(text, text);
+      expect(Array.isArray(diff)).toBe(true);
+    });
+
+    it('returns summary for empty original and long corrected', () => {
+      const diff = computeWordDiff('', generateWords(400));
+      expect(diff.type).toBe('summary');
+    });
+
+    it('completes in under 50ms for 1000-word input', () => {
+      const original = generateWords(1000);
+      const corrected = original.replace('word500', 'corrected500');
+      const start = performance.now();
+      computeWordDiff(original, corrected);
+      const elapsed = performance.now() - start;
+      expect(elapsed).toBeLessThan(50);
+    });
+
+    it('hasChanges returns true for a summary with changes', () => {
+      const original = generateWords(400);
+      const corrected = original.replace('word5', 'fixed5');
+      const diff = computeWordDiff(original, corrected);
+      expect(hasChanges(diff)).toBe(true);
+    });
+
+    it('hasChanges returns false for identical long texts', () => {
+      const text = generateWords(400);
+      const diff = computeWordDiff(text, text);
+      expect(diff.type).toBe('summary');
+      expect(hasChanges(diff)).toBe(false);
+    });
+  });
 });

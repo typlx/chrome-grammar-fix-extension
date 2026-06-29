@@ -1,3 +1,11 @@
+## 2.2.0 — 2026-06-29
+
+### Bug Fixes
+
+- Fix quadratic diff freeze on long text (>300 tokens) — large documents now return an instant summary instead of allocating an O(m×n) matrix.
+- Add Google Docs unsupported indicator in popup — warns users that canvas-based editors cannot be accessed by browser extensions.
+- Serialize analytics storage writes to prevent multi-tab race condition — concurrent tabs no longer clobber each other's counters.
+
 ## 2.0.0 — 2026-04-24
 
 ### Changes

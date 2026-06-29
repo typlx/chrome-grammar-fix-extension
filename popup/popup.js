@@ -358,5 +358,20 @@ async function checkFirstRun() {
   }
 }
 
+async function checkUnsupportedSite() {
+  try {
+    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (activeTab?.url) {
+      const hostname = new URL(activeTab.url).hostname;
+      if (hostname.endsWith('docs.google.com')) {
+        document.getElementById('unsupported-notice').classList.remove('hidden');
+      }
+    }
+  } catch {
+    /* tab query unavailable */
+  }
+}
+
 loadSettings();
 checkFirstRun();
+checkUnsupportedSite();

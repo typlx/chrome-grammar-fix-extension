@@ -304,9 +304,28 @@
   }
 
   function computeWordDiff(original, corrected) {
+    const DIFF_TOKEN_LIMIT = 300;
     const tokenize = (t) => t.match(/\S+|\s+/g) || [];
     const a = tokenize(original);
     const b = tokenize(corrected);
+
+    if (a.length > DIFF_TOKEN_LIMIT || b.length > DIFF_TOKEN_LIMIT) {
+      const origNonWs = a.filter((w) => w.trim());
+      const corrNonWs = b.filter((w) => w.trim());
+      const origSet = new Set(origNonWs);
+      const corrSet = new Set(corrNonWs);
+      let removed = 0,
+        added = 0;
+      for (const w of origNonWs) if (!corrSet.has(w)) removed++;
+      for (const w of corrNonWs) if (!origSet.has(w)) added++;
+      return {
+        type: 'summary',
+        added,
+        removed,
+        total: Math.max(origNonWs.length, corrNonWs.length),
+      };
+    }
+
     const m = a.length,
       n = b.length;
     const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
@@ -365,6 +384,12 @@
   }
 
   function renderDiffHtml(diff) {
+    if (diff.type === 'summary') {
+      const parts = [];
+      if (diff.removed > 0) parts.push(`${diff.removed} removed`);
+      if (diff.added > 0) parts.push(`${diff.added} added`);
+      return `<span class="gf-diff-summary">${parts.join(', ')} (${diff.total} words total)</span>`;
+    }
     return diff
       .map((d) => {
         const escaped = d.value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

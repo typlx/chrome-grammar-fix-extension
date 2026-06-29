@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Typlx",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Privacy-first, open-source grammar checker. Advanced AI suggestions while your data stays under your control. No tracking.",
   "browser_specific_settings": {
     "gecko": {
