@@ -7,6 +7,10 @@ describe('Extension installation and onboarding', () => {
   beforeAll(async () => {
     browser = await launchBrowser();
     extensionId = await getExtensionId(browser);
+    await browser.waitForTarget(
+      (t) => t.type() === 'page' && t.url().includes('onboarding/onboarding.html'),
+      { timeout: 10_000 },
+    );
   });
 
   afterAll(async () => {
