@@ -8,6 +8,7 @@ labels: bug
 A clear and concise description of what's happening.
 
 **Steps to reproduce**
+
 1. Go to '...'
 2. Click on '...'
 3. See error
@@ -16,6 +17,7 @@ A clear and concise description of what's happening.
 What you expected to happen.
 
 **Environment**
+
 - Chrome version: (check `chrome://version`)
 - OS: Windows / macOS / Linux
 - Typlx version: (check `chrome://extensions`)

@@ -22,14 +22,14 @@ Or clone and load unpacked for development (see [Contributing](CONTRIBUTING.md))
 
 ## Why Typlx?
 
-| | Typlx | Grammarly | LanguageTool |
-|---|---|---|---|
-| Price | Free | $12–30/mo | Free–$6.99/mo |
-| Your text on their servers | ❌ Never | ✅ Always | ✅ Default (self-host for privacy) |
-| Open source | ✅ MIT | ❌ | ✅ Partial |
-| AI-quality corrections | ✅ | ✅ | ❌ |
-| Local model support | ✅ Ollama/LM Studio | ❌ | ❌ |
-| Account required | ❌ | ✅ | ✅ |
+|                            | Typlx               | Grammarly | LanguageTool                       |
+| -------------------------- | ------------------- | --------- | ---------------------------------- |
+| Price                      | Free                | $12–30/mo | Free–$6.99/mo                      |
+| Your text on their servers | ❌ Never            | ✅ Always | ✅ Default (self-host for privacy) |
+| Open source                | ✅ MIT              | ❌        | ✅ Partial                         |
+| AI-quality corrections     | ✅                  | ✅        | ❌                                 |
+| Local model support        | ✅ Ollama/LM Studio | ❌        | ❌                                 |
+| Account required           | ❌                  | ✅        | ✅                                 |
 
 ## Supported Models
 

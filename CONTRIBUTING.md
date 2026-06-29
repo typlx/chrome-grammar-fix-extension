@@ -12,6 +12,7 @@ npm run validate
 ```
 
 Then in Chrome:
+
 1. Open `chrome://extensions`
 2. Enable **Developer mode** (top-right toggle)
 3. Click **Load unpacked** and select the project folder
@@ -19,6 +20,7 @@ Then in Chrome:
 ## What We're Looking For
 
 ### High-priority contributions
+
 - Support for additional LLM providers (Cohere, Mistral, etc.)
 - Compatibility fixes for specific sites (Google Docs edge cases, Slack, etc.)
 - Performance improvements (debouncing, token estimation)
@@ -26,6 +28,7 @@ Then in Chrome:
 - Bug fixes with a reproduction case
 
 ### Out of scope (for now)
+
 - Features that require Typlx to proxy or store user text
 - Adding a Typlx cloud account/sync feature
 - Social login integrations
@@ -64,6 +67,7 @@ npm run validate      # lint + format:check + test (run this before every PR)
 ## Reporting Bugs
 
 Use the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.md). Include:
+
 - Chrome version and OS
 - Which LLM provider and model you're using (you don't need to share your API key)
 - Steps to reproduce
