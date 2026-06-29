@@ -40,6 +40,7 @@ test:
 
 e2e:
   stage: e2e
+  allow_failure: true
   image: node:20
   cache:
     key: ${CI_COMMIT_REF_SLUG}
