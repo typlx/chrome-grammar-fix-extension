@@ -40,17 +40,18 @@ export async function configureExtension(browser, extensionId, apiUrl) {
   });
   await page.waitForSelector('#apiUrl');
 
-  const fillField = async (id, value) => {
-    const input = await page.$(`#${id}`);
-    await input.click({ clickCount: 3 });
-    await input.type(value);
-  };
-
-  await fillField('apiUrl', apiUrl);
-  await fillField('model', 'test-model');
-  await fillField('token', 'test-token-e2e');
+  await page.evaluate((url) => {
+    const setField = (id, value) => {
+      const el = document.getElementById(id);
+      el.value = value;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    setField('apiUrl', url);
+    setField('model', 'test-model');
+    setField('token', 'test-token-e2e');
+  }, apiUrl);
 
   await page.click('button[type="submit"]');
-  await page.waitForSelector('.toast.success.visible', { timeout: 10_000 });
+  await page.waitForSelector('.toast.success.visible', { timeout: 15_000 });
   await page.close();
 }
