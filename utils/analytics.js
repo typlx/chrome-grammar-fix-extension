@@ -14,6 +14,19 @@ const DEFAULT_STATS = {
   lastUsed: null,
 };
 
+// Serializes concurrent storage writes to prevent lost-update races in multi-tab usage.
+// JS is single-threaded but async awaits allow interleaving: two tabs can both read the
+// same stale value, increment independently, then clobber each other's write. Chaining
+// every mutating operation onto _writeQueue ensures only one read→modify→write runs
+// at a time within this service-worker context.
+let _writeQueue = Promise.resolve();
+
+function withWriteLock(fn) {
+  const queued = _writeQueue.then(fn);
+  _writeQueue = queued.catch(() => {});
+  return queued;
+}
+
 export async function isAnalyticsEnabled() {
   const result = await chrome.storage.local.get(ANALYTICS_ENABLED_KEY);
   return result[ANALYTICS_ENABLED_KEY] === true;
@@ -37,24 +50,18 @@ async function getDailyHistory() {
   return result[DAILY_HISTORY_KEY] || {};
 }
 
-async function updateDailyHistory(update) {
-  const history = await getDailyHistory();
+function getOrCreateTodayEntry(history) {
   const today = todayKey();
-
   if (!history[today]) {
     history[today] = { corrections: 0, accepted: 0, rejected: 0, words: 0 };
   }
-
-  update(history[today]);
-
   const keys = Object.keys(history).sort();
   if (keys.length > MAX_HISTORY_DAYS) {
     for (const key of keys.slice(0, keys.length - MAX_HISTORY_DAYS)) {
       delete history[key];
     }
   }
-
-  await chrome.storage.local.set({ [DAILY_HISTORY_KEY]: history });
+  return history[today];
 }
 
 export async function getDailyTrend(days = 7) {
@@ -75,56 +82,72 @@ export async function getDailyTrend(days = 7) {
 
 export async function recordCorrection(charCount, wordCount = 0) {
   if (!(await isAnalyticsEnabled())) return;
+  return withWriteLock(async () => {
+    const stored = await chrome.storage.local.get([ANALYTICS_KEY, DAILY_HISTORY_KEY]);
+    const stats = { ...DEFAULT_STATS, ...(stored[ANALYTICS_KEY] || {}) };
+    const history = stored[DAILY_HISTORY_KEY] || {};
 
-  const stats = await getStats();
-  stats.totalCorrections++;
-  stats.charactersProcessed += charCount;
-  stats.wordsChecked += wordCount;
-  stats.lastUsed = new Date().toISOString();
-  await chrome.storage.local.set({ [ANALYTICS_KEY]: stats });
+    stats.totalCorrections++;
+    stats.charactersProcessed += charCount;
+    stats.wordsChecked += wordCount;
+    stats.lastUsed = new Date().toISOString();
 
-  await updateDailyHistory((day) => {
-    day.corrections++;
-    day.words += wordCount;
+    const today = getOrCreateTodayEntry(history);
+    today.corrections++;
+    today.words += wordCount;
+
+    await chrome.storage.local.set({ [ANALYTICS_KEY]: stats, [DAILY_HISTORY_KEY]: history });
   });
 }
 
 export async function recordAccepted() {
   if (!(await isAnalyticsEnabled())) return;
+  return withWriteLock(async () => {
+    const stored = await chrome.storage.local.get([ANALYTICS_KEY, DAILY_HISTORY_KEY]);
+    const stats = { ...DEFAULT_STATS, ...(stored[ANALYTICS_KEY] || {}) };
+    const history = stored[DAILY_HISTORY_KEY] || {};
 
-  const stats = await getStats();
-  stats.totalAccepted++;
-  await chrome.storage.local.set({ [ANALYTICS_KEY]: stats });
+    stats.totalAccepted++;
 
-  await updateDailyHistory((day) => {
-    day.accepted++;
+    const today = getOrCreateTodayEntry(history);
+    today.accepted++;
+
+    await chrome.storage.local.set({ [ANALYTICS_KEY]: stats, [DAILY_HISTORY_KEY]: history });
   });
 }
 
 export async function recordRejected() {
   if (!(await isAnalyticsEnabled())) return;
+  return withWriteLock(async () => {
+    const stored = await chrome.storage.local.get([ANALYTICS_KEY, DAILY_HISTORY_KEY]);
+    const stats = { ...DEFAULT_STATS, ...(stored[ANALYTICS_KEY] || {}) };
+    const history = stored[DAILY_HISTORY_KEY] || {};
 
-  const stats = await getStats();
-  stats.totalRejected++;
-  await chrome.storage.local.set({ [ANALYTICS_KEY]: stats });
+    stats.totalRejected++;
 
-  await updateDailyHistory((day) => {
-    day.rejected++;
+    const today = getOrCreateTodayEntry(history);
+    today.rejected++;
+
+    await chrome.storage.local.set({ [ANALYTICS_KEY]: stats, [DAILY_HISTORY_KEY]: history });
   });
 }
 
 export async function recordResponseTime(ms) {
   if (!(await isAnalyticsEnabled())) return;
-
-  const stats = await getStats();
-  stats.totalResponseMs += ms;
-  stats.responseCount++;
-  await chrome.storage.local.set({ [ANALYTICS_KEY]: stats });
+  return withWriteLock(async () => {
+    const stored = await chrome.storage.local.get(ANALYTICS_KEY);
+    const stats = { ...DEFAULT_STATS, ...(stored[ANALYTICS_KEY] || {}) };
+    stats.totalResponseMs += ms;
+    stats.responseCount++;
+    await chrome.storage.local.set({ [ANALYTICS_KEY]: stats });
+  });
 }
 
 export async function resetStats() {
-  await chrome.storage.local.set({
-    [ANALYTICS_KEY]: { ...DEFAULT_STATS },
-    [DAILY_HISTORY_KEY]: {},
+  return withWriteLock(async () => {
+    await chrome.storage.local.set({
+      [ANALYTICS_KEY]: { ...DEFAULT_STATS },
+      [DAILY_HISTORY_KEY]: {},
+    });
   });
 }

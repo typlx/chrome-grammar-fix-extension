@@ -150,6 +150,49 @@ describe('privacy-respecting analytics', () => {
     });
   });
 
+  describe('race condition safety — concurrent writes from multiple tabs', () => {
+    beforeEach(async () => {
+      await setAnalyticsEnabled(true);
+    });
+
+    it('does not lose increments when multiple record calls are fired concurrently', async () => {
+      await Promise.all([
+        recordCorrection(50, 10),
+        recordCorrection(75, 15),
+        recordAccepted(),
+        recordAccepted(),
+        recordRejected(),
+        recordResponseTime(200),
+        recordResponseTime(400),
+      ]);
+
+      const stats = await getStats();
+      expect(stats.totalCorrections).toBe(2);
+      expect(stats.totalAccepted).toBe(2);
+      expect(stats.totalRejected).toBe(1);
+      expect(stats.charactersProcessed).toBe(125);
+      expect(stats.wordsChecked).toBe(25);
+      expect(stats.totalResponseMs).toBe(600);
+      expect(stats.responseCount).toBe(2);
+    });
+
+    it('does not lose daily history increments when writes are concurrent', async () => {
+      await Promise.all([
+        recordCorrection(50, 10),
+        recordCorrection(75, 15),
+        recordAccepted(),
+        recordAccepted(),
+        recordRejected(),
+      ]);
+
+      const trend = await getDailyTrend(1);
+      expect(trend[0].corrections).toBe(2);
+      expect(trend[0].accepted).toBe(2);
+      expect(trend[0].rejected).toBe(1);
+      expect(trend[0].words).toBe(25);
+    });
+  });
+
   describe('resetting stats', () => {
     it('clears all counters and daily history back to zero', async () => {
       await setAnalyticsEnabled(true);
