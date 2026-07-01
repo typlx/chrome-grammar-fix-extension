@@ -14,8 +14,8 @@ Unlike cloud-dependent grammar checkers, Typlx sends text only to the API provid
 
 FEATURES
 
-• Works everywhere — textareas, inputs, contenteditable, Gmail compose, SPAs.
-• Bring your own model — OpenAI, Anthropic Claude, or any OpenAI-compatible API (Ollama, LM Studio, vLLM for fully local/offline use).
+• Works everywhere — textareas, inputs, contenteditable, email composers, rich text editors, SPAs.
+• Bring your own model — any OpenAI-compatible or Anthropic-compatible API, including local runners for fully offline use.
 • Privacy first — your API key is encrypted at rest (AES-GCM). No telemetry, no analytics beacons, no phone-home.
 • Per-site toggle — enable or disable Typlx on any site.
 • Open source — MIT licensed. Audit every line of code on GitHub.
