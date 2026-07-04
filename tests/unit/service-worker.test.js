@@ -236,6 +236,46 @@ describe('service-worker', () => {
       expect(result.ok).toBe(false);
       expect(result.error).toContain('Missing required field');
     });
+
+    it('returns error when Anthropic API responds with 400 bad request', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: false,
+          status: 400,
+          text: async () => 'invalid model format',
+        }),
+      );
+
+      const result = await validateConfig({
+        provider: 'anthropic',
+        apiUrl: 'https://api.anthropic.com/v1',
+        token: 'sk-ant-valid',
+        model: 'bad-model-name',
+      });
+      expect(result.ok).toBe(false);
+      expect(result.error).toContain('Bad request (400)');
+    });
+
+    it('returns error for Anthropic API unexpected status codes', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: false,
+          status: 429,
+          text: async () => 'rate limited',
+        }),
+      );
+
+      const result = await validateConfig({
+        provider: 'anthropic',
+        apiUrl: 'https://api.anthropic.com/v1',
+        token: 'sk-ant-valid',
+        model: 'claude-sonnet-4-20250514',
+      });
+      expect(result.ok).toBe(false);
+      expect(result.error).toContain('429');
+    });
   });
 
   describe('extractApiErrorMessage (OpenAI provider)', () => {

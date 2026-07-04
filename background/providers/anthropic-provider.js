@@ -110,8 +110,24 @@ export async function validateConfig(config) {
     return { ok: false, error: 'API endpoint not found (404). Check the API URL.' };
   }
 
+  if (response.status === 400) {
+    const body = await response.text().catch(() => '');
+    return {
+      ok: false,
+      error: `Bad request (400). Model name or request format may be invalid. ${body.slice(0, 200)}`,
+    };
+  }
+
   if (response.status >= 500) {
     return { ok: false, error: `Anthropic server error (${response.status}). Try again later.` };
+  }
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => '');
+    return {
+      ok: false,
+      error: `Anthropic API error (${response.status}). ${body.slice(0, 200)}`,
+    };
   }
 
   return { ok: true };

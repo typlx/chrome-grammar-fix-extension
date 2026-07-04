@@ -555,6 +555,27 @@
       }
     });
 
+    document.addEventListener('click', (e) => {
+      if (!preview.classList.contains('visible')) return;
+      if (shadow.contains(e.composedPath()[0])) return;
+      dismissPreview();
+      btn.innerHTML = ICON_SVG;
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (preview.classList.contains('visible') && e.key === 'Escape') {
+        dismissPreview();
+        btn.innerHTML = ICON_SVG;
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'G') {
+        if (document.activeElement === target || target.contains(document.activeElement)) {
+          e.preventDefault();
+          btn.click();
+        }
+      }
+    });
+
     const cleanup = new MutationObserver(() => {
       if (!document.contains(target)) {
         host.remove();

@@ -141,6 +141,12 @@ export function replaceSelection(el, original, corrected) {
 }
 
 export function renderDiffHtml(diff) {
+  if (diff.type === 'summary') {
+    const parts = [];
+    if (diff.removed > 0) parts.push(`${diff.removed} removed`);
+    if (diff.added > 0) parts.push(`${diff.added} added`);
+    return `<span class="gf-diff-summary">${parts.join(', ')} (${diff.total} words total)</span>`;
+  }
   return diff
     .map((d) => {
       const escaped = d.value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

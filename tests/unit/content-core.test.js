@@ -312,6 +312,29 @@ describe('content-core', () => {
       expect(html).toContain('gf-diff-added');
       expect(html).toContain('I');
     });
+
+    it('renders summary diff when text exceeds token limit', () => {
+      const summary = { type: 'summary', added: 3, removed: 2, total: 50 };
+      const html = renderDiffHtml(summary);
+      expect(html).toContain('gf-diff-summary');
+      expect(html).toContain('2 removed');
+      expect(html).toContain('3 added');
+      expect(html).toContain('50 words total');
+    });
+
+    it('renders summary diff with only additions', () => {
+      const summary = { type: 'summary', added: 5, removed: 0, total: 100 };
+      const html = renderDiffHtml(summary);
+      expect(html).toContain('5 added');
+      expect(html).not.toContain('removed');
+    });
+
+    it('renders summary diff with only removals', () => {
+      const summary = { type: 'summary', added: 0, removed: 4, total: 80 };
+      const html = renderDiffHtml(summary);
+      expect(html).toContain('4 removed');
+      expect(html).not.toContain('added');
+    });
   });
 
   describe('positionHost', () => {

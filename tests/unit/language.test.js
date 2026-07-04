@@ -31,6 +31,12 @@ describe('language detection and multi-language groundwork', () => {
       expect(detectLanguage(text)).toBe('fr');
     });
 
+    it('detects German text correctly', () => {
+      const text =
+        'Der schnelle braune Fuchs springt über den faulen Hund und rennt dann durch den Wald mit großer Begeisterung';
+      expect(detectLanguage(text)).toBe('de');
+    });
+
     it('defaults to English for very short text', () => {
       expect(detectLanguage('hi')).toBe('en');
       expect(detectLanguage('')).toBe('en');
@@ -55,8 +61,14 @@ describe('language detection and multi-language groundwork', () => {
       expect(prompt).toContain('French');
     });
 
-    it('falls back to English for unknown language codes', () => {
+    it('returns a German prompt for German', () => {
       const prompt = getSystemPrompt('de');
+      expect(prompt).toContain('Korrigiere');
+      expect(prompt).toContain('German');
+    });
+
+    it('falls back to English for unknown language codes', () => {
+      const prompt = getSystemPrompt('ja');
       expect(prompt).toContain('Fix grammar');
     });
   });
@@ -80,12 +92,13 @@ describe('language detection and multi-language groundwork', () => {
   });
 
   describe('supported languages registry', () => {
-    it('includes auto-detect and at least three languages', () => {
+    it('includes auto-detect and at least four languages', () => {
       const languages = getSupportedLanguages();
       expect(languages.auto).toBeDefined();
       expect(languages.en).toBeDefined();
       expect(languages.es).toBeDefined();
       expect(languages.fr).toBeDefined();
+      expect(languages.de).toBeDefined();
     });
 
     it('each language has a label and code', () => {
