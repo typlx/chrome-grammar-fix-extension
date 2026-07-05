@@ -21,7 +21,8 @@
       "js": ["content/content.js"],
       "css": ["content/content.css"],
       "all_frames": true,
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "type": "module"
     }
   ],
   "action": {

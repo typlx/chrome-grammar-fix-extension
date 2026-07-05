@@ -1,5 +1,6 @@
-(() => {
-  const PROCESSED = new WeakSet();
+import { computeWordDiff } from '../utils/diff.js';
+
+const PROCESSED = new WeakSet();
   const ICON_HOST_ATTR = 'data-gf-host';
   const DISABLED_SITES_KEY = 'grammarfix_disabled_sites';
   const hostname = window.location.hostname;
@@ -303,86 +304,6 @@
     return text.trim().split(/\s+/).filter(Boolean).length;
   }
 
-  function computeWordDiff(original, corrected) {
-    const DIFF_TOKEN_LIMIT = 300;
-    const tokenize = (t) => t.match(/\S+|\s+/g) || [];
-    const a = tokenize(original);
-    const b = tokenize(corrected);
-
-    if (a.length > DIFF_TOKEN_LIMIT || b.length > DIFF_TOKEN_LIMIT) {
-      const origNonWs = a.filter((w) => w.trim());
-      const corrNonWs = b.filter((w) => w.trim());
-      const origSet = new Set(origNonWs);
-      const corrSet = new Set(corrNonWs);
-      let removed = 0,
-        added = 0;
-      for (const w of origNonWs) if (!corrSet.has(w)) removed++;
-      for (const w of corrNonWs) if (!origSet.has(w)) added++;
-      return {
-        type: 'summary',
-        added,
-        removed,
-        total: Math.max(origNonWs.length, corrNonWs.length),
-      };
-    }
-
-    const m = a.length,
-      n = b.length;
-    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-    for (let i = 1; i <= m; i++)
-      for (let j = 1; j <= n; j++)
-        dp[i][j] =
-          a[i - 1] === b[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
-    const lcs = [];
-    let i = m,
-      j = n;
-    while (i > 0 && j > 0) {
-      if (a[i - 1] === b[j - 1]) {
-        lcs.unshift(a[i - 1]);
-        i--;
-        j--;
-      } else if (dp[i - 1][j] > dp[i][j - 1]) i--;
-      else j--;
-    }
-    const changes = [];
-    let oi = 0,
-      ci = 0,
-      li = 0;
-    while (oi < a.length || ci < b.length) {
-      if (
-        li < lcs.length &&
-        oi < a.length &&
-        ci < b.length &&
-        a[oi] === lcs[li] &&
-        b[ci] === lcs[li]
-      ) {
-        changes.push({ type: 'equal', value: a[oi] });
-        oi++;
-        ci++;
-        li++;
-      } else if (li < lcs.length && oi < a.length && a[oi] !== lcs[li]) {
-        changes.push({ type: 'removed', value: a[oi] });
-        oi++;
-      } else if (li < lcs.length && ci < b.length && b[ci] !== lcs[li]) {
-        changes.push({ type: 'added', value: b[ci] });
-        ci++;
-      } else if (li >= lcs.length && oi < a.length) {
-        changes.push({ type: 'removed', value: a[oi] });
-        oi++;
-      } else if (li >= lcs.length && ci < b.length) {
-        changes.push({ type: 'added', value: b[ci] });
-        ci++;
-      }
-    }
-    const merged = [];
-    for (const c of changes) {
-      const last = merged[merged.length - 1];
-      if (last && last.type === c.type) last.value += c.value;
-      else merged.push({ ...c });
-    }
-    return merged;
-  }
-
   function renderDiffHtml(diff) {
     if (diff.type === 'summary') {
       const parts = [];
@@ -660,4 +581,4 @@
   }
 
   init();
-})();
+
