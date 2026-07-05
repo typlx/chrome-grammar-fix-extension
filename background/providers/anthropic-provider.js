@@ -12,10 +12,21 @@ export const configFields = [
   { key: 'token', label: 'API Key', type: 'password', placeholder: 'sk-ant-...' },
 ];
 
+async function fetchWithTimeout(url, options) {
+  try {
+    return await fetch(url, { ...options, signal: AbortSignal.timeout(30000) });
+  } catch (err) {
+    if (err.name === 'AbortError' || err.name === 'TimeoutError') {
+      throw new Error('Request timed out. Please try again.');
+    }
+    throw err;
+  }
+}
+
 export async function fixGrammar(text, systemPrompt, config) {
   const url = `${config.apiUrl.replace(/\/+$/, '')}/messages`;
 
-  const response = await fetch(url, {
+  const fetchOptions = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -29,9 +40,23 @@ export async function fixGrammar(text, systemPrompt, config) {
       system: systemPrompt,
       messages: [{ role: 'user', content: text }],
     }),
-  });
+  };
+
+  const retryDelays = [1000, 2000];
+  let response;
+  for (let attempt = 0; attempt <= 2; attempt++) {
+    response = await fetchWithTimeout(url, fetchOptions);
+    if (response.status === 429 && attempt < 2) {
+      await new Promise((resolve) => setTimeout(resolve, retryDelays[attempt]));
+      continue;
+    }
+    break;
+  }
 
   if (!response.ok) {
+    if (response.status === 408) {
+      throw new Error('Request timed out (408). Please try again.');
+    }
     const body = await response.text().catch(() => '');
     throw new Error(`API error ${response.status}: ${body.slice(0, 200)}`);
   }
@@ -90,8 +115,12 @@ export async function validateConfig(config) {
         max_tokens: 1,
         messages: [{ role: 'user', content: 'Hi' }],
       }),
+      signal: AbortSignal.timeout(30000),
     });
   } catch (err) {
+    if (err.name === 'AbortError' || err.name === 'TimeoutError') {
+      return { ok: false, error: 'Request timed out. Please try again.' };
+    }
     return {
       ok: false,
       error: `Cannot reach Anthropic API (${url}). Details: ${err.message}`,
