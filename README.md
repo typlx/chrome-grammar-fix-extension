@@ -1,24 +1,32 @@
-# Typlx — AI Grammar Checker for Chrome
+# Typlx — Privacy-First AI Grammar Checker for Browser
 
 > AI-powered grammar and writing corrections for every text field in your browser. **Your text never passes through Typlx servers.**
 
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/koffcnafpmfkoafknhkmcgcpdgmpgfop?label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/koffcnafpmfkoafknhkmcgcpdgmpgfop)
-[![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/koffcnafpmfkoafknhkmcgcpdgmpgfop)](https://chromewebstore.google.com/detail/koffcnafpmfkoafknhkmcgcpdgmpgfop)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![CI](https://github.com/typlx/chrome-grammar-fix-extension/actions/workflows/ci.yml/badge.svg)](https://github.com/typlx/chrome-grammar-fix-extension/actions/workflows/ci.yml)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 
 Typlx connects your browser directly to the LLM of your choice — OpenAI, Anthropic Claude, Google Gemini, or a fully local model via Ollama. You own the API key. You choose the model. Typlx is just the interface.
 
+**→ [Join the Typlx Pro waitlist](https://typlx.com/pro)** — early-bird pricing locked in for waitlist members.
+
 ![Typlx demo](docs/images/typlx-demo.gif)
 
 ## Install
 
-**[→ Install from Chrome Web Store](https://chromewebstore.google.com/detail/koffcnafpmfkoafknhkmcgcpdgmpgfop)**
+Build from source in three steps:
 
-Also available on [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/typlx/PLACEHOLDER) and [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/typlx/).
+```bash
+git clone https://github.com/typlx/chrome-grammar-fix-extension.git
+cd chrome-grammar-fix-extension
+npm install --include=dev && npm run build
+```
 
-Or clone and load unpacked for development (see [Contributing](CONTRIBUTING.md)).
+Then load the unpacked extension:
+- **Chrome / Edge**: `chrome://extensions` → Developer mode → Load unpacked → select `dist/chrome/`
+- **Firefox**: `about:debugging` → Load Temporary Add-on → select `dist/firefox/manifest.json`
+
+> Firefox extension listing coming soon. Android and iOS keyboard apps are also [open source](https://github.com/typlx).
 
 ## Why Typlx?
 
@@ -38,32 +46,12 @@ Or clone and load unpacked for development (see [Contributing](CONTRIBUTING.md))
 - **Google** — Gemini Flash, Gemini Pro
 - **Local** — Any Ollama or LM Studio model (fully offline, no API key)
 
-### From Source
+## Configure
 
-1. Clone and install:
-
-```bash
-git clone https://github.com/typlx/chrome-grammar-fix-extension.git
-cd chrome-grammar-fix-extension
-npm install --include=dev
-```
-
-2. Build both targets:
-
-```bash
-npm run build
-```
-
-3. Load in your browser:
-   - **Chrome**: Navigate to `chrome://extensions`, enable **Developer mode**, click **Load unpacked** and select `dist/chrome/`
-   - **Edge**: Navigate to `edge://extensions`, enable **Developer mode**, click **Load unpacked** and select `dist/edge/`
-   - **Firefox**: Navigate to `about:debugging#/runtime/this-firefox`, click **Load Temporary Add-on** and select `dist/firefox/manifest.json`
-
-4. Configure:
-   - Click the Typlx icon in the toolbar
-   - Select your LLM provider (OpenAI-compatible or Anthropic Claude)
-   - Enter your API URL, model, and token
-   - Click **Save Settings**
+1. Click the Typlx icon in the toolbar.
+2. Select your LLM provider (OpenAI-compatible or Anthropic Claude).
+3. Enter your API URL, model, and token.
+4. Click **Save Settings**.
 
 ## Usage
 
@@ -122,6 +110,14 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, code qu
 - [Contributing Guide](CONTRIBUTING.md)
 - [Release Notes](RELEASE_NOTES.md)
 - [Privacy Policy](PRIVACY_POLICY.md)
+
+## Related Projects
+
+| Repo | Platform |
+| ---- | -------- |
+| [typlx/android-grammar-keyboard](https://github.com/typlx/android-grammar-keyboard) | Android custom IME keyboard |
+| [typlx/ios-grammar-keyboard](https://github.com/typlx/ios-grammar-keyboard) | iOS keyboard extension |
+| [typlx/typlx-website](https://github.com/typlx/typlx-website) | typlx.com website |
 
 ## License
 
