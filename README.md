@@ -23,6 +23,7 @@ npm install --include=dev && npm run build
 ```
 
 Then load the unpacked extension:
+
 - **Chrome / Edge**: `chrome://extensions` → Developer mode → Load unpacked → select `dist/chrome/`
 - **Firefox**: `about:debugging` → Load Temporary Add-on → select `dist/firefox/manifest.json`
 
@@ -113,11 +114,11 @@ Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, code qu
 
 ## Related Projects
 
-| Repo | Platform |
-| ---- | -------- |
+| Repo                                                                                | Platform                    |
+| ----------------------------------------------------------------------------------- | --------------------------- |
 | [typlx/android-grammar-keyboard](https://github.com/typlx/android-grammar-keyboard) | Android custom IME keyboard |
-| [typlx/ios-grammar-keyboard](https://github.com/typlx/ios-grammar-keyboard) | iOS keyboard extension |
-| [typlx/typlx-website](https://github.com/typlx/typlx-website) | typlx.com website |
+| [typlx/ios-grammar-keyboard](https://github.com/typlx/ios-grammar-keyboard)         | iOS keyboard extension      |
+| [typlx/typlx-website](https://github.com/typlx/typlx-website)                       | typlx.com website           |
 
 ## License
 

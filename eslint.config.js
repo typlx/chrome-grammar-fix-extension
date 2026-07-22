@@ -30,14 +30,20 @@ export default [
   },
 
   {
-    files: ['vitest.config.js', 'vitest.e2e.config.js', 'eslint.config.js', 'scripts/**/*.mjs'],
+    files: [
+      'vitest.config.js',
+      'vitest.e2e.config.js',
+      'eslint.config.js',
+      'scripts/**/*.mjs',
+      '.puppeteerrc.cjs',
+    ],
     languageOptions: {
       globals: globals.node,
     },
   },
 
   {
-    ignores: ['node_modules/**', 'coverage/**', '*.zip', '*.crx'],
+    ignores: ['node_modules/**', 'coverage/**', 'dist/**', '*.zip', '*.crx'],
   },
 
   prettier,

@@ -26,12 +26,12 @@ Typlx does **not** collect, transmit, or store any user data on servers controll
 
 All data is stored locally on your device in `chrome.storage.local`. Typlx does not store any data on external servers.
 
-| Data                  | Storage location                          | Encryption          | Retention                                |
-| --------------------- | ----------------------------------------- | ------------------- | ---------------------------------------- |
-| API token / key       | `chrome.storage.local` (your device)      | AES-GCM encrypted   | Until you remove it or uninstall Typlx   |
+| Data                  | Storage location                          | Encryption           | Retention                                |
+| --------------------- | ----------------------------------------- | -------------------- | ---------------------------------------- |
+| API token / key       | `chrome.storage.local` (your device)      | AES-GCM encrypted    | Until you remove it or uninstall Typlx   |
 | Per-site disable list | `chrome.storage.local` (your device)      | None (not sensitive) | Until you remove it or uninstall Typlx   |
 | Usage statistics      | `chrome.storage.local` (your device)      | None (not sensitive) | Until you remove it or uninstall Typlx   |
-| Checked text          | Not stored — sent transiently to your LLM | N/A                 | Not retained by Typlx after the API call |
+| Checked text          | Not stored — sent transiently to your LLM | N/A                  | Not retained by Typlx after the API call |
 
 You can delete all stored data at any time by uninstalling the extension or clearing extension storage in your browser settings.
 
