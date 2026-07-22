@@ -48,7 +48,7 @@ jobs:
           retention-days: 90
 
       - name: Install chrome-webstore-upload-cli
-        run: npm install -g chrome-webstore-upload-cli
+        run: npm install -g chrome-webstore-upload-cli@3.3.2
 
       - name: Upload and publish to Chrome Web Store
         env:
