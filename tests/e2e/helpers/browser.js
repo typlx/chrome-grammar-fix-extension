@@ -1,13 +1,34 @@
 import puppeteer from 'puppeteer';
 import path from 'node:path';
+import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const EXTENSION_PATH = path.resolve(__dirname, '..', '..', '..');
 
+const SYSTEM_CHROMIUM_PATHS = [
+  '/usr/bin/chromium',
+  '/usr/bin/chromium-browser',
+  '/usr/bin/google-chrome',
+  '/usr/bin/google-chrome-stable',
+];
+
+function resolveChromiumPath() {
+  if (process.env.PUPPETEER_EXECUTABLE_PATH) {
+    return process.env.PUPPETEER_EXECUTABLE_PATH;
+  }
+  for (const p of SYSTEM_CHROMIUM_PATHS) {
+    if (fs.existsSync(p)) return p;
+  }
+  return undefined;
+}
+
 export async function launchBrowser() {
+  const executablePath = resolveChromiumPath();
+
   return puppeteer.launch({
     headless: 'new',
+    ...(executablePath && { executablePath }),
     args: [
       `--disable-extensions-except=${EXTENSION_PATH}`,
       `--load-extension=${EXTENSION_PATH}`,

@@ -40,7 +40,7 @@ npm run build:firefox      # build and report Firefox output
 
 **Unit + Integration:** Vitest with jsdom. Chrome APIs are mocked in tests/setup.js (chrome.storage.local, chrome.runtime). Web Crypto is polyfilled from Node's webcrypto. Test globals (describe, it, expect, vi) are enabled via vitest config.
 
-**E2E:** Puppeteer launches Chrome with the extension loaded via `--load-extension`. A mock HTTP server (tests/e2e/helpers/mock-api.js) simulates the OpenAI API. Shadow DOM interactions use CDP (Chrome DevTools Protocol) to pierce the closed shadow root in content.js. E2E tests run with a separate vitest config (vitest.e2e.config.js, node environment, single-fork pool). Tests require an x86 environment with Chrome — they run in CI, not in ARM dev containers.
+**E2E:** Puppeteer launches Chromium with the extension loaded via `--load-extension`. A mock HTTP server (tests/e2e/helpers/mock-api.js) simulates the OpenAI API. Shadow DOM interactions use CDP (Chrome DevTools Protocol) to pierce the closed shadow root in content.js. E2E tests run with a separate vitest config (vitest.e2e.config.js, node environment, single-fork pool). CI installs system Chromium (ARM64/x86_64-native) via `apt-get` and sets `PUPPETEER_EXECUTABLE_PATH` — Puppeteer's bundled Chrome download is skipped via `.puppeteerrc.cjs`. To run locally, set `PUPPETEER_EXECUTABLE_PATH` to your Chromium/Chrome binary path.
 
 ## CI
 
